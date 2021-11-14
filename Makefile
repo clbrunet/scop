@@ -3,7 +3,6 @@ TARGET = scop
 CC = clang
 CFLAGS = -Wall -Wextra -Werror -I./src/ -I./ext/glad/include/ -Wno-unused-function -g3
 LDFLAGS = -lGL -lglfw -ldl
-DEPSFLAGS = -MMD -MP -MF $(@:.o=.d)
 
 SRCS = ext/glad/src/glad.c \
 			 src/scop/main.c
@@ -17,7 +16,7 @@ all: $(TARGET)
 -include $(DEPS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(DEPSFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -o $@ -c $<
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET) $(OBJS)
