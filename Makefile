@@ -27,7 +27,7 @@ $(LIBGLAD):
 -include $(DEPS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(DEPSFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -o $@ -c $<
 
 $(NAME): $(OBJS) $(LIBGLFW3) $(LIBGLAD)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(NAME) $(OBJS) $(LIBGLFW3) $(LIBGLAD)
