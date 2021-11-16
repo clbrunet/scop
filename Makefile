@@ -5,9 +5,9 @@ CFLAGS = -Wall -Wextra -Werror -I./src/ -I./ext/glad/include/ -I./ext/glfw/inclu
 CFLAGS += -Wno-unused-function -g3
 DEPSFLAGS = -MMD -MP -MF $(@:.o=.d)
 
-LDFLAGS = -lpthread -ldl -lGL -lm
-LIBGLFW3 = ./ext/glfw/build/src/libglfw3.a
-LIBGLAD = ./ext/glad/libglad.a
+LDFLAGS = -lpthread -ldl -lGL -lm -L./ext/glfw/build/src/ -lglfw3 -L./ext/glad/ -lglad
+LIBGLFW3 = ext/glfw/build/src/libglfw3.a
+LIBGLAD = ext/glad/libglad.a
 
 SRCS = src/scop/main.c
 
@@ -26,11 +26,11 @@ $(LIBGLAD):
 
 -include $(DEPS)
 
-%.o: %.c
+%.o: %.c Makefile
 	$(CC) $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -o $@ -c $<
 
 $(NAME): $(OBJS) $(LIBGLFW3) $(LIBGLAD)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $(NAME) $(OBJS) $(LIBGLFW3) $(LIBGLAD)
+	$(CC) $(CFLAGS) -o $(NAME) $(OBJS) $(LDFLAGS)
 
 .PHONY: clean
 clean:

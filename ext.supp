@@ -1,0 +1,23 @@
+{
+  /usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.390.144
+    Memcheck:Leak
+    match-leak-kinds: all
+    ...
+    obj:/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.390.144
+}
+
+{
+  /usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.390.144
+    Memcheck:Leak
+    match-leak-kinds: all
+    ...
+    obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+}
+
+{
+  dl-error-skeleton.c
+    Memcheck:Leak
+    match-leak-kinds: all
+    ...
+    src:dl-error-skeleton.c
+}

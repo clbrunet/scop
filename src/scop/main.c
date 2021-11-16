@@ -1,7 +1,8 @@
 #include <stdio.h>
-#include <glad/glad.h> 
+#include <stdlib.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <glad/glad.h> 
 
 #define INIT_WIDTH 800
 #define INIT_HEIGHT 600
@@ -27,14 +28,12 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 	}
 }
 
-int main(int argc, char *argv[])
+GLFWwindow *initialize_glfw()
 {
-	(void)argc;
-	(void)argv;
-
+	GLFWwindow *window = NULL;
 	if (glfwInit() == GLFW_FALSE) {
 		fprintf(stderr, "GLFW initialization failed\n");
-		return 1;
+		return NULL;
 	}
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
@@ -42,22 +41,42 @@ int main(int argc, char *argv[])
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-	GLFWwindow *window = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, "SCOP", NULL, NULL);
+	window = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, "SCOP", NULL, NULL);
 	if (window == NULL) {
 		fprintf(stderr, "Window or OpenGL context creation failed failed\n");
 		glfwTerminate();
-		return 1;
+		return NULL;
 	}
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, &framebuffer_size_callback);
 	glfwSetKeyCallback(window, &key_callback);
+	return window;
+}
 
+int initialize_gl()
+{
 	if (gladLoadGLLoader((GLADloadproc)&glfwGetProcAddress) == 0) {
 		fprintf(stderr, "Glad initialization failed\n");
-		return 1;
+		return -1;
 	}
 
 	glViewport(0, 0, INIT_WIDTH, INIT_HEIGHT);
+	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+	(void)argc;
+	(void)argv;
+
+	GLFWwindow *window = initialize_glfw();
+	if (window == NULL) {
+		return 1;
+	}
+	if (initialize_gl() == -1) {
+		return 1;
+	}
+
 	while (glfwWindowShouldClose(window) == GLFW_FALSE) {
 		glClear(GL_COLOR_BUFFER_BIT);
 		glfwSwapBuffers(window);
