@@ -29,7 +29,7 @@ $(LIBGLAD):
 %.o: %.c Makefile
 	$(CC) $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -o $@ -c $<
 
-$(NAME): $(OBJS) $(LIBGLFW3) $(LIBGLAD)
+$(NAME): $(LIBGLFW3) $(LIBGLAD) $(OBJS)
 	$(CC) $(CFLAGS) -o $(NAME) $(OBJS) $(LDFLAGS)
 
 .PHONY: clean

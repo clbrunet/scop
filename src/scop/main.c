@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-#include <glad/glad.h> 
+#include "GLFW/glfw3.h"
+#include "glad/glad.h"
 
 #define INIT_WIDTH 800
 #define INIT_HEIGHT 600
