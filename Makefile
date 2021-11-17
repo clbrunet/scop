@@ -3,6 +3,7 @@ NAME = scop
 CC = clang
 CFLAGS = -Wall -Wextra -Werror -I./src/ -I./ext/glad/include/ -I./ext/glfw/include/
 CFLAGS += -Wno-unused-function -g3
+# CFLAGS += -fsanitize=address
 DEPSFLAGS = -MMD -MP -MF $(@:.o=.d)
 
 LDFLAGS = -lpthread -ldl -lGL -lm -L./ext/glfw/build/src/ -lglfw3 -L./ext/glad/ -lglad

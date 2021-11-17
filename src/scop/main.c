@@ -14,22 +14,26 @@ static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
+static void print_key(int key, int scancode, int action, int mods)
+{
+	return;
+	printf("\n");
+	printf("key: %i\n", key);
+	printf("scancode: %i\n", scancode);
+	printf("action: %i\n", action);
+	printf("mods: %i\n", mods);
+}
+
 static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-	// printf("\n");
-	// printf("key: %i\n", key);
-	// printf("scancode: %i\n", scancode);
-	// printf("action: %i\n", action);
-	// printf("mods: %i\n", mods);
-	(void)scancode;
-	(void)mods;
+	print_key(key, scancode, action, mods);
 
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 	}
 }
 
-GLFWwindow *initialize_glfw()
+static GLFWwindow *initialize_glfw()
 {
 	GLFWwindow *window = NULL;
 	if (glfwInit() == GLFW_FALSE) {
@@ -53,7 +57,7 @@ GLFWwindow *initialize_glfw()
 	return window;
 }
 
-int initialize_gl()
+static int initialize_gl()
 {
 	if (gladLoadGLLoader((GLADloadproc)&glfwGetProcAddress) == 0) {
 		fprintf(stderr, "Glad initialization failed\n");
@@ -84,7 +88,7 @@ char *get_file_content(const char *path)
 	return content;
 }
 
-GLuint create_shader(GLenum shader_type, const char *path)
+static GLuint create_shader(GLenum shader_type, const char *path)
 {
 	GLchar *shader_src = get_file_content(path);
 	if (shader_src == NULL) {
@@ -106,7 +110,7 @@ GLuint create_shader(GLenum shader_type, const char *path)
 	return shader;
 }
 
-GLuint create_program()
+static GLuint create_program()
 {
 	GLuint vertex_shader = create_shader(GL_VERTEX_SHADER, "./shaders/vertex.glsl");
 	GLuint fragment_shader = create_shader(GL_FRAGMENT_SHADER, "./shaders/fragment.glsl");
@@ -153,38 +157,54 @@ int main(int argc, char *argv[])
 	}
 	glUseProgram(program);
 
-	GLfloat vertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.0f,  0.5f, 0.0f
-	};
-	int vertices_count = 3;
+	int vertices_count = 4;
 	int vertices_dimension = 3;
+	GLfloat vertices[4 * 3] = {
+		-0.5f, 0.5f, 0.0f,
+		0.5f, 0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f,
+		-0.5f, -0.5f, 0.0f
+	};
+
+	int indices_count = 2;
+	int indices_dimension = 3;
+	GLuint indices[2 * 3] = {
+		0, 1, 2,
+		2, 3, 0
+	};
 
 	GLuint vertex_array;
 	glGenVertexArrays(1, &vertex_array);
 	GLuint vertex_buffer;
 	glGenBuffers(1, &vertex_buffer);
+	GLuint element_buffer;
+	glGenBuffers(1, &element_buffer);
 
 	glBindVertexArray(vertex_array);
+
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
 	glBufferData(GL_ARRAY_BUFFER, vertices_count * vertices_dimension * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, vertices_dimension, GL_FLOAT, GL_FALSE, vertices_dimension * sizeof(GLfloat), (GLvoid *)(0 * sizeof(GLfloat)));
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * indices_dimension * sizeof(GLuint), indices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, vertices_dimension, GL_FLOAT, GL_FALSE, vertices_dimension * sizeof(GLfloat), (const GLvoid *)(0 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	while (glfwWindowShouldClose(window) == GLFW_FALSE) {
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glBindVertexArray(vertex_array);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (const GLvoid *)(0 * sizeof(GLuint)));
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 	glDeleteVertexArrays(1, &vertex_array);
 	glDeleteBuffers(1, &vertex_buffer);
+	glDeleteBuffers(1, &element_buffer);
+
 	glDeleteProgram(program);
 
 	glfwTerminate();
