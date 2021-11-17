@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
 #include "glad/glad.h"
@@ -168,6 +169,10 @@ int main(int argc, char *argv[])
 		return 2;
 	}
 	glUseProgram(program);
+	GLint color_uniform_location = glGetUniformLocation(program, "color");
+	assert(color_uniform_location != -1);
+	GLint x_displacement_uniform_location = glGetUniformLocation(program, "x_displacement");
+	assert(x_displacement_uniform_location != -1);
 
 	int vertices_count = 4;
 	GLfloat vertices[4 * 3] = {
@@ -205,6 +210,14 @@ int main(int argc, char *argv[])
 
 	while (glfwWindowShouldClose(window) == GLFW_FALSE) {
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		double time = glfwGetTime();
+
+		GLfloat x_displacement = sin(time) / 2;
+		glUniform1f(x_displacement_uniform_location, x_displacement);
+
+		GLfloat blue = cos(time) / 4 + 0.75;
+		glUniform4f(color_uniform_location, 0, 1, blue, 1);
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (const GLvoid *)(0 * sizeof(GLuint)));
 
