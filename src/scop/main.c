@@ -28,9 +28,21 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 {
 	print_key(key, scancode, action, mods);
 
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
+	if (action == GLFW_PRESS) {
+		if (key == GLFW_KEY_ESCAPE) {
+			glfwSetWindowShouldClose(window, GLFW_TRUE);
+		}
+		else if (key == GLFW_KEY_L) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+		else if (key == GLFW_KEY_F) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+		else if (key == GLFW_KEY_P) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		}
 	}
+
 }
 
 static GLFWwindow *initialize_glfw()
@@ -158,20 +170,20 @@ int main(int argc, char *argv[])
 	glUseProgram(program);
 
 	int vertices_count = 4;
-	int vertices_dimension = 3;
 	GLfloat vertices[4 * 3] = {
 		-0.5f, 0.5f, 0.0f,
 		0.5f, 0.5f, 0.0f,
 		0.5f, -0.5f, 0.0f,
 		-0.5f, -0.5f, 0.0f
 	};
+	int vertices_dimension = 3;
 
 	int indices_count = 2;
-	int indices_dimension = 3;
 	GLuint indices[2 * 3] = {
 		0, 1, 2,
 		2, 3, 0
 	};
+	int indices_dimension = 3;
 
 	GLuint vertex_array;
 	glGenVertexArrays(1, &vertex_array);
@@ -190,8 +202,6 @@ int main(int argc, char *argv[])
 
 	glVertexAttribPointer(0, vertices_dimension, GL_FLOAT, GL_FALSE, vertices_dimension * sizeof(GLfloat), (const GLvoid *)(0 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(0);
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	while (glfwWindowShouldClose(window) == GLFW_FALSE) {
 		glClear(GL_COLOR_BUFFER_BIT);
