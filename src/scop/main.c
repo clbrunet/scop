@@ -122,10 +122,10 @@ static GLuint create_shader(GLenum shader_type, const char *path)
 	return shader;
 }
 
-static GLuint create_program()
+static GLuint create_program(const char *vertex_shader_path, const char *fragment_shader_path)
 {
-	GLuint vertex_shader = create_shader(GL_VERTEX_SHADER, "./shaders/vertex.glsl");
-	GLuint fragment_shader = create_shader(GL_FRAGMENT_SHADER, "./shaders/fragment.glsl");
+	GLuint vertex_shader = create_shader(GL_VERTEX_SHADER, vertex_shader_path);
+	GLuint fragment_shader = create_shader(GL_FRAGMENT_SHADER, fragment_shader_path);
 	if (vertex_shader == 0 || fragment_shader == 0) {
 		glDeleteShader(vertex_shader);
 		glDeleteShader(fragment_shader);
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	GLuint program = create_program();
+	GLuint program = create_program("./shaders/vertex.glsl", "./shaders/fragment.glsl");
 	if (program == 0) {
 		glfwTerminate();
 		return 2;
