@@ -10,7 +10,11 @@ LDFLAGS = -lpthread -ldl -lGL -lm -L./ext/glfw/build/src/ -lglfw3 -L./ext/glad/ 
 LIBGLFW3 = ext/glfw/build/src/libglfw3.a
 LIBGLAD = ext/glad/libglad.a
 
-SRCS = src/scop/main.c
+SRCS = ./src/scop/main.c \
+			 ./src/scop/initialization.c \
+			 ./src/scop/events.c \
+			 ./src/scop/update.c \
+			 ./src/scop/destruction.c
 
 OBJS = $(SRCS:.c=.o)
 DEPS = $(SRCS:.c=.d)
