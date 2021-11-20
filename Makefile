@@ -2,13 +2,13 @@ NAME = scop
 
 CC = clang
 CFLAGS = -Wall -Wextra -Werror
-CFLAGS += -I./src/ -I./ext/glad/include/ -I./ext/glfw/include/
+CFLAGS += -I./src/ -I./ext/glad/include/ -I./ext/glfw-3.3.5/include/
 CFLAGS += -Wno-unused-function -g3
 # CFLAGS += -fsanitize=address
 DEPSFLAGS = -MMD -MP -MF $(@:.o=.d)
 
-LDFLAGS = -lpthread -ldl -lGL -lm -L./ext/glfw/build/src/ -lglfw3 -L./ext/glad/ -lglad
-LIBGLFW3 = ext/glfw/build/src/libglfw3.a
+LDFLAGS = -lX11 -lpthread -ldl -lGL -lm -L./ext/glfw-3.3.5/build/src/ -lglfw3 -L./ext/glad/ -lglad
+LIBGLFW3 = ext/glfw-3.3.5/build/src/libglfw3.a
 LIBGLAD = ext/glad/libglad.a
 
 SRCS = ./src/scop/main.c \
@@ -25,8 +25,8 @@ DEPS = $(SRCS:.c=.d)
 all: $(NAME)
 
 $(LIBGLFW3):
-	cmake -S ./ext/glfw -B ./ext/glfw/build
-	make -C ./ext/glfw/build/
+	cmake -S ./ext/glfw-3.3.5/ -B ./ext/glfw-3.3.5/build/
+	make -C ./ext/glfw-3.3.5/build/
 
 $(LIBGLAD):
 	make -C ./ext/glad/

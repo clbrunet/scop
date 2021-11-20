@@ -50,5 +50,6 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+/ext/glfw-3.3.5/build/
 
 /scop
