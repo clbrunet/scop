@@ -3,6 +3,6 @@
 
 #include "scop/app.h"
 
-void update(app_t *app, double time, double delta_time);
+void update(app_t *app, GLdouble time, GLdouble delta_time);
 
 #endif

@@ -5,18 +5,16 @@
 #include "GLFW/glfw3.h"
 #include "glad/glad.h"
 
-#define INIT_WIDTH 800
-#define INIT_HEIGHT 600
-
 typedef struct app_s
 {
 	GLFWwindow *window;
+	GLsizei window_width;
+	GLsizei window_height;
 	GLuint program;
-	GLuint color_uniform_location;
-	GLuint x_displacement_uniform_location;
 	GLuint vertex_array;
 	GLuint vertex_buffer;
 	GLuint element_buffer;
+	GLsizei triangle_count;
 }	app_t;
 
 #endif

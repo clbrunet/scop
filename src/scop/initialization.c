@@ -9,12 +9,12 @@
 #include "scop/app.h"
 #include "scop/events.h"
 
-static GLFWwindow *initialize_glfw()
+static int initialize_glfw(app_t *app)
 {
-	GLFWwindow *window = NULL;
+	app->window = NULL;
 	if (glfwInit() == GLFW_FALSE) {
 		fprintf(stderr, "GLFW initialization failed\n");
-		return NULL;
+		return -1;
 	}
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
@@ -22,26 +22,30 @@ static GLFWwindow *initialize_glfw()
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-	window = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, "SCOP", NULL, NULL);
-	if (window == NULL) {
+	app->window = glfwCreateWindow(app->window_width, app->window_height, "SCOP", NULL, NULL);
+	if (app->window == NULL) {
 		fprintf(stderr, "Window or OpenGL context creation failed failed\n");
 		glfwTerminate();
-		return NULL;
+		return -1;
 	}
-	glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, &framebuffer_size_callback);
-	glfwSetKeyCallback(window, &key_callback);
-	return window;
+	glfwSetWindowUserPointer(app->window, app);
+	glfwMakeContextCurrent(app->window);
+	glfwSetFramebufferSizeCallback(app->window, &framebuffer_size_callback);
+	glfwSetKeyCallback(app->window, &key_callback);
+
+	glfwSwapInterval(1);
+	return 0;
 }
 
-static int initialize_gl()
+static int initialize_gl(app_t *app)
 {
 	if (gladLoadGLLoader((GLADloadproc)&glfwGetProcAddress) == 0) {
 		fprintf(stderr, "Glad initialization failed\n");
 		return -1;
 	}
 
-	glViewport(0, 0, INIT_WIDTH, INIT_HEIGHT);
+	printf("OpenGL version : %s\n", glGetString(GL_VERSION));
+	glViewport(0, 0, app->window_width, app->window_height);
 	return 0;
 }
 
@@ -53,7 +57,7 @@ char *get_file_content(const char *path)
 	}
 	fseek(file, 0, SEEK_END);
 	long file_size = ftell(file);
-	char *content = malloc((file_size + 1) * sizeof(char));
+	char *content = (char *)malloc((file_size + 1) * sizeof(char));
 	if (content == NULL) {
 		fclose(file);
 		return NULL;
@@ -118,12 +122,13 @@ static GLuint create_program(const char *vertex_shader_path, const char *fragmen
 
 int initialization(app_t *app)
 {
-	app->window = initialize_glfw();
-	if (app->window == NULL) {
+	app->window_width = 1280;
+	app->window_height = 720;
+	if (initialize_glfw(app) == -1) {
 		return -1;
 	}
 
-	if (initialize_gl() == -1) {
+	if (initialize_gl(app) == -1) {
 		glfwTerminate();
 		return -1;
 	}
@@ -134,25 +139,65 @@ int initialization(app_t *app)
 		return -1;
 	}
 	glUseProgram(app->program);
-	app->color_uniform_location = glGetUniformLocation(app->program, "color");
-	assert(app->color_uniform_location != (GLuint)-1);
-	app->x_displacement_uniform_location = glGetUniformLocation(app->program, "x_displacement");
-	assert(app->x_displacement_uniform_location != (GLuint)-1);
 
-	int vertices_count = 4;
-	GLfloat vertices[4 * 3] = {
-		-0.5f, 0.5f, 0.0f,
-		0.5f, 0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		-0.5f, -0.5f, 0.0f
+	// BASIC
+	// int vertices_count = 5;
+	// GLfloat vertices[5 * 3] = {
+	// 	-0.5f, 0.5f, 0.0f,
+	// 	0.5f, 0.5f, 0.0f,
+	// 	0.5f, -0.5f, 0.0f,
+	// 	-0.5f, -0.5f, 0.0f,
+	// 	-1, 1, 0.0f,
+	// };
+	// app->triangle_count = 4;
+	// GLuint indices[4 * 3] = {
+	// 	0, 1, 2,
+	// 	2, 3, 0,
+	// 	4, 3, 0,
+	// 	4, 3, 1,
+	// };
+
+	// X rotation only
+	// int vertices_count = 6;
+	// GLfloat vertices[6 * 3] = {
+	// 	1.000000, 1.366025, -0.366025,
+	// 	1.000000, 0.366025, 1.366025,
+	// 	1.000000, -1.366025, 0.366025,
+	// 	-1.000000, 1.366025, -0.366025,
+	// 	-1.000000, 0.366025, 1.366025,
+	// 	-1.000000, -1.366025, 0.366025,
+	// };
+	// app->triangle_count = 4;
+	// GLuint indices[4 * 3] = {
+	// 	3, 1, 0,
+	// 	1, 5, 2,
+	// 	1, 4, 5,
+	// 	3, 4, 1,
+	// };
+
+	// new 3 faces X rotation, Y rotation
+	int vertices_count = 7;
+	GLfloat vertices[7 * 3] = {
+		0.707030, 0.408425, 0.288613,
+		0.707182, -0.407108, -0.290098,
+		0.000911, -0.001444, 0.866024,
+		0.001063, -0.816976, 0.287313,
+		-0.001063, 0.816976, -0.287313,
+		-0.707182, 0.407108, 0.290098,
+		-0.707030, -0.408425, -0.288613,
 	};
+	app->triangle_count = 6;
+	GLuint indices[6 * 3] = {
+		4, 2, 0,
+		2, 6, 3,
+		0, 3, 1,
+		0, 2, 3,
+		2, 5, 6,
+		4, 5, 2,
+	};
+
+
 	int vertices_dimension = 3;
-
-	int indices_count = 2;
-	GLuint indices[2 * 3] = {
-		0, 1, 2,
-		2, 3, 0
-	};
 	int indices_dimension = 3;
 
 	glGenVertexArrays(1, &app->vertex_array);
@@ -165,7 +210,7 @@ int initialization(app_t *app)
 	glBufferData(GL_ARRAY_BUFFER, vertices_count * vertices_dimension * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, app->element_buffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * indices_dimension * sizeof(GLuint), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, app->triangle_count * indices_dimension * sizeof(GLuint), indices, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, vertices_dimension, GL_FLOAT, GL_FALSE, vertices_dimension * sizeof(GLfloat), (const GLvoid *)(0 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(0);

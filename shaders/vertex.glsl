@@ -2,9 +2,9 @@
 
 layout (location = 0) in vec3 position;
 
-uniform float x_displacement;
+uniform mat4 projection_view;
 
 void main()
 {
-  gl_Position = vec4(position.x + x_displacement, position.yz, 1.0);
+  gl_Position = projection_view * vec4(position, 1);
 }

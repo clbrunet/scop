@@ -1,7 +1,8 @@
 NAME = scop
 
 CC = clang
-CFLAGS = -Wall -Wextra -Werror -I./src/ -I./ext/glad/include/ -I./ext/glfw/include/
+CFLAGS = -Wall -Wextra -Werror
+CFLAGS += -I./src/ -I./ext/glad/include/ -I./ext/glfw/include/
 CFLAGS += -Wno-unused-function -g3
 # CFLAGS += -fsanitize=address
 DEPSFLAGS = -MMD -MP -MF $(@:.o=.d)
@@ -11,6 +12,7 @@ LIBGLFW3 = ext/glfw/build/src/libglfw3.a
 LIBGLAD = ext/glad/libglad.a
 
 SRCS = ./src/scop/main.c \
+			 ./src/scop/utils.c \
 			 ./src/scop/initialization.c \
 			 ./src/scop/events.c \
 			 ./src/scop/update.c \

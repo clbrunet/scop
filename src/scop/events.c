@@ -4,9 +4,13 @@
 #include "GLFW/glfw3.h"
 #include "glad/glad.h"
 
+#include "scop/app.h"
+
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
-	(void)window;
+	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
+	app->window_width = width;
+	app->window_height = height;
 	glViewport(0, 0, width, height);
 }
 
