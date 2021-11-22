@@ -31,7 +31,7 @@ void update(app_t *app, GLdouble time, GLdouble delta_time)
 	mat4_t yaw_mat4;
 	set_yaw_mat4(yaw_mat4, radians(time * 40 * 1));
 	mat4_t pitch_mat4;
-	set_pitch_mat4(pitch_mat4, radians(time * 40 * 0));
+	set_pitch_mat4(pitch_mat4, radians(0));
 	mat4_t roll_mat4;
 	set_roll_mat4(roll_mat4, radians(time * 40 * 0));
 	mat4_t pitch_yaw_mat4;
@@ -43,7 +43,7 @@ void update(app_t *app, GLdouble time, GLdouble delta_time)
 	mat4_t view_mat4 = {
 		{ 1, 0, 0, 0 },
 		{ 0, 1, 0, 0 },
-		{ 0, 0, 1, -4 },
+		{ 0, 0, 1, -8 },
 		{ 0, 0, 0, 1 },
 	};
 
