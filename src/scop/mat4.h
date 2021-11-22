@@ -3,6 +3,15 @@
 
 #include "glad/glad.h"
 
+typedef struct vec4_s vec4_t;
+
 typedef GLfloat mat4_t[4][4];
+
+void set_zero_mat4(mat4_t mat4);
+void set_identity_mat4(mat4_t mat4);
+void set_perspective_projection_mat4(mat4_t projection_mat4, GLfloat horizontal_fov,
+		GLfloat aspect_ratio);
+void mat4_multiplication(mat4_t lhs, mat4_t rhs, mat4_t result);
+vec4_t mat4_vec4_multiplication(mat4_t mat4, vec4_t vec4);
 
 #endif
