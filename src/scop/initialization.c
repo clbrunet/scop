@@ -32,6 +32,8 @@ static int initialize_glfw(app_t *app)
 	glfwMakeContextCurrent(app->window);
 	glfwSetFramebufferSizeCallback(app->window, &framebuffer_size_callback);
 	glfwSetKeyCallback(app->window, &key_callback);
+	glfwSetMouseButtonCallback(app->window, &mouse_button_callback);
+	glfwSetScrollCallback(app->window, &scroll_callback);
 
 	glfwSwapInterval(1);
 	return 0;
@@ -125,6 +127,7 @@ int initialization(app_t *app)
 {
 	app->window_width = 1280;
 	app->window_height = 720;
+	app->fov = 60;
 	if (initialize_glfw(app) == -1) {
 		return -1;
 	}

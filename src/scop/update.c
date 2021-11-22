@@ -48,7 +48,7 @@ void update(app_t *app, GLdouble time, GLdouble delta_time)
 	};
 
 	mat4_t projection_mat4;
-	set_perspective_projection_mat4(projection_mat4, radians(60),
+	set_perspective_projection_mat4(projection_mat4, radians(app->fov),
 			(GLfloat)app->window_width / (GLfloat)app->window_height, 0.1, 100);
 
 	mat4_t view_model_mat4;

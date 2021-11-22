@@ -15,6 +15,7 @@ typedef struct app_s
 	GLuint vertex_buffer;
 	GLuint element_buffer;
 	GLsizei triangle_count;
+	GLfloat fov;
 }	app_t;
 
 #endif

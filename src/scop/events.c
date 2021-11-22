@@ -42,6 +42,35 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 			glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		}
 	}
-
 }
 
+static void print_mouse_button(int button, int action, int mods)
+{
+	return;
+	printf("\n");
+	printf("button: %i\n", button);
+	printf("action: %i\n", action);
+	printf("mods: %i\n", mods);
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	(void)window;
+	print_mouse_button(button, action, mods);
+}
+
+static void print_scroll(double xoffset, double yoffset)
+{
+	return;
+	printf("\n");
+	printf("xoffset: %f\n", xoffset);
+	printf("yoffset: %f\n", yoffset);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	print_scroll(xoffset, yoffset);
+
+	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
+	app->fov -= yoffset * 3;
+}
