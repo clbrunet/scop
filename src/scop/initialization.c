@@ -127,7 +127,10 @@ int initialization(app_t *app)
 {
 	app->window_width = 1280;
 	app->window_height = 720;
-	app->fov = 60;
+	app->fov = 90;
+	app->camera_position.x = 0;
+	app->camera_position.y = 0;
+	app->camera_position.z = 4;
 	if (initialize_glfw(app) == -1) {
 		return -1;
 	}

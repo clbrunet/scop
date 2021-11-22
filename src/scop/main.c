@@ -23,13 +23,14 @@ int main(int argc, char *argv[])
 
 	double last_frame_time = glfwGetTime();;
 	while (glfwWindowShouldClose(app.window) == GLFW_FALSE) {
-		double current_time = glfwGetTime();
+		app.current_time = glfwGetTime();
+		app.delta_time = app.current_time - last_frame_time;
 
-		update(&app, current_time, current_time - last_frame_time);
+		update(&app);
 
 		glfwSwapBuffers(app.window);
 		glfwPollEvents();
-		last_frame_time = current_time;
+		last_frame_time = app.current_time;
 	}
 
 	destruction(&app);

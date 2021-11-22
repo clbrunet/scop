@@ -5,6 +5,8 @@
 #include "GLFW/glfw3.h"
 #include "glad/glad.h"
 
+#include "scop/vec3.h"
+
 typedef struct app_s
 {
 	GLFWwindow *window;
@@ -15,7 +17,10 @@ typedef struct app_s
 	GLuint vertex_buffer;
 	GLuint element_buffer;
 	GLsizei triangle_count;
+	double current_time;
+	double delta_time;
 	GLfloat fov;
+	vec3_t camera_position;
 }	app_t;
 
 #endif
