@@ -47,6 +47,17 @@ void update(app_t *app, GLdouble time, GLdouble delta_time)
 	(void)time; (void)delta_time;
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	mat4_t yaw_mat4;
+	set_yaw_mat4(yaw_mat4, radians(time * 20));
+	mat4_t pitch_mat4;
+	set_pitch_mat4(pitch_mat4, radians(time * 20));
+	mat4_t roll_mat4;
+	set_roll_mat4(roll_mat4, radians(time * 20));
+	mat4_t pitch_yaw_mat4;
+	mat4_multiplication(pitch_mat4, yaw_mat4, pitch_yaw_mat4);
+	mat4_t model_mat4;
+	mat4_multiplication(roll_mat4, pitch_yaw_mat4, model_mat4);
+
 	mat4_t view_mat4 = {
 		{ 1, 0, 0, 0 },
 		{ 0, 1, 0, 0 },
@@ -58,14 +69,18 @@ void update(app_t *app, GLdouble time, GLdouble delta_time)
 	set_perspective_projection_mat4(projection_mat4, radians(60),
 			(GLfloat)app->window_width / (GLfloat)app->window_height);
 
-	mat4_t projection_view_mat4;
-	mat4_multiplication(projection_mat4, view_mat4, projection_view_mat4);
+	mat4_t view_model_mat4;
+	mat4_multiplication(view_mat4, model_mat4, view_model_mat4);
 
-	GLuint projection_view_uniform_location = glGetUniformLocation(app->program, "projection_view");
-	assert(projection_view_uniform_location != (GLuint)-1);
-	glUniformMatrix4fv(projection_view_uniform_location, 1, GL_TRUE, (const GLfloat *)projection_view_mat4);
+	mat4_t projection_view_model_mat4;
+	mat4_multiplication(projection_mat4, view_model_mat4, projection_view_model_mat4);
 
-	debug(app, projection_view_mat4);
+	GLuint projection_view_model_uniform_location = glGetUniformLocation(app->program, "projection_view_model");
+	assert(projection_view_model_uniform_location != (GLuint)-1);
+	glUniformMatrix4fv(projection_view_model_uniform_location, 1, GL_TRUE,
+			(const GLfloat *)projection_view_model_mat4);
+
+	debug(app, projection_view_model_mat4);
 
 	GLuint color_uniform_location = glGetUniformLocation(app->program, "color");
 	assert(color_uniform_location != (GLuint)-1);

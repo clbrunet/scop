@@ -39,6 +39,36 @@ void set_perspective_projection_mat4(mat4_t projection_mat4, GLfloat horizontal_
 	projection_mat4[3][2] = -1;
 }
 
+// angle in radians
+void set_yaw_mat4(mat4_t yaw_mat4, GLfloat angle)
+{
+	set_identity_mat4(yaw_mat4);
+	yaw_mat4[0][0] = cos(angle);
+	yaw_mat4[0][2] = sin(angle);
+	yaw_mat4[2][0] = -sin(angle);
+	yaw_mat4[2][2] = cos(angle);
+}
+
+// angle in radians
+void set_pitch_mat4(mat4_t pitch_mat4, GLfloat angle)
+{
+	set_identity_mat4(pitch_mat4);
+	pitch_mat4[1][1] = cos(angle);
+	pitch_mat4[1][2] = -sin(angle);
+	pitch_mat4[2][1] = sin(angle);
+	pitch_mat4[2][2] = cos(angle);
+}
+
+// angle in radians
+void set_roll_mat4(mat4_t roll_mat4, GLfloat angle)
+{
+	set_identity_mat4(roll_mat4);
+	roll_mat4[0][0] = cos(angle);
+	roll_mat4[0][1] = -sin(angle);
+	roll_mat4[1][0] = sin(angle);
+	roll_mat4[1][1] = cos(angle);
+}
+
 void print_mat4(mat4_t mat4)
 {
 	for (int i = 0; i < 4; i++) {
