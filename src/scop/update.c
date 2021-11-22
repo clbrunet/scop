@@ -9,9 +9,10 @@
 #include "glad/glad.h"
 
 #include "scop/app.h"
+#include "scop/mat4.h"
 #include "scop/utils.h"
 
-void set_zero_mat4(GLfloat mat4[4][4])
+void set_zero_mat4(mat4_t mat4)
 {
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
@@ -20,7 +21,7 @@ void set_zero_mat4(GLfloat mat4[4][4])
 	}
 }
 
-void set_identity_mat4(GLfloat mat4[4][4])
+void set_identity_mat4(mat4_t mat4)
 {
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
@@ -33,10 +34,8 @@ void set_identity_mat4(GLfloat mat4[4][4])
 	}
 }
 
-/*
-   horizontal_fov in radians
-*/
-void set_perspective_projection_mat4(GLfloat projection_mat4[4][4], GLfloat horizontal_fov,
+// horizontal_fov in radians
+void set_perspective_projection_mat4(mat4_t projection_mat4, GLfloat horizontal_fov,
 		GLfloat aspect_ratio)
 {
 	set_zero_mat4(projection_mat4);
@@ -47,7 +46,7 @@ void set_perspective_projection_mat4(GLfloat projection_mat4[4][4], GLfloat hori
 	projection_mat4[3][2] = -1;
 }
 
-void print_mat4(GLfloat mat4[4][4])
+void print_mat4(mat4_t mat4)
 {
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
@@ -68,7 +67,7 @@ void print_vec4(GLfloat vec4[4][1])
 	}
 }
 
-void mat4_multiplication(GLfloat lhs[4][4], GLfloat rhs[4][4], GLfloat result[4][4])
+void mat4_multiplication(mat4_t lhs, mat4_t rhs, mat4_t result)
 {
 	set_zero_mat4(result);
 	for (int i = 0; i < 4; i++) {
@@ -80,7 +79,7 @@ void mat4_multiplication(GLfloat lhs[4][4], GLfloat rhs[4][4], GLfloat result[4]
 	}
 }
 
-void mat4_vec4_multiplication(GLfloat mat4[4][4], GLfloat vec4[4][1], GLfloat result[4][1])
+void mat4_vec4_multiplication(mat4_t mat4, GLfloat vec4[4][1], GLfloat result[4][1])
 {
 	for (int i = 0; i < 4; i++) {
 		result[i][0] = 0;
@@ -92,31 +91,63 @@ void mat4_vec4_multiplication(GLfloat mat4[4][4], GLfloat vec4[4][1], GLfloat re
 	}
 }
 
+void debug(app_t *app, mat4_t final)
+{
+	(void)app;
+	(void)final;
+	static int is_first = 1;
+	if (is_first) {
+		// print_mat4(final);
+		// printf("\n");
+
+		// GLfloat vec4[4][1] = {
+		// 	{ 0.000911, },
+		// 	{ -0.001444, },
+		// 	{ 0.866024, },
+		// 	{ 1, },
+		// };
+		GLfloat vec4[4][1] = {
+			{ 0.707182, },
+			{ -0.407108, },
+			{ -0.290098, },
+			{ 1, },
+		};
+
+		GLfloat result[4][1];
+		mat4_vec4_multiplication(final, vec4, result);
+		// print_vec4(result);
+
+		is_first = 0;
+	}
+}
+
 void update(app_t *app, GLdouble time, GLdouble delta_time)
 {
 	(void)time; (void)delta_time;
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	GLfloat view_mat4[4][4] = {
+	mat4_t view_mat4 = {
 		{ 1, 0, 0, 0 },
 		{ 0, 1, 0, 0 },
 		{ 0, 0, 1, -4 },
 		{ 0, 0, 0, 1 },
 	};
 
-	GLfloat projection_mat4[4][4];
+	mat4_t projection_mat4;
 	set_perspective_projection_mat4(projection_mat4, radians(60),
 			(GLfloat)app->window_width / (GLfloat)app->window_height);
 
-	GLfloat projection_view_mat4[4][4];
+	mat4_t projection_view_mat4;
 	mat4_multiplication(projection_mat4, view_mat4, projection_view_mat4);
-
-	GLuint color_uniform_location = glGetUniformLocation(app->program, "color");
-	assert(color_uniform_location != (GLuint)-1);
 
 	GLuint projection_view_uniform_location = glGetUniformLocation(app->program, "projection_view");
 	assert(projection_view_uniform_location != (GLuint)-1);
 	glUniformMatrix4fv(projection_view_uniform_location, 1, GL_TRUE, (const GLfloat *)projection_view_mat4);
+
+	debug(app, projection_view_mat4);
+
+	GLuint color_uniform_location = glGetUniformLocation(app->program, "color");
+	assert(color_uniform_location != (GLuint)-1);
 
 	GLfloat white = 1;
 	for (GLsizei i = 0; i < app->triangle_count; i++) {
