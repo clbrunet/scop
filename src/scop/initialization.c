@@ -46,6 +46,7 @@ static int initialize_gl(app_t *app)
 
 	printf("OpenGL version : %s\n", glGetString(GL_VERSION));
 	glViewport(0, 0, app->window_width, app->window_height);
+	glEnable(GL_DEPTH_TEST);
 	return 0;
 }
 

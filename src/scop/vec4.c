@@ -5,10 +5,10 @@
 
 void print_vec4(vec4_t vec4)
 {
-	printf("x: %f", vec4.x);
-	printf("y: %f", vec4.y);
-	printf("z: %f", vec4.z);
-	printf("w: %f", vec4.w);
+	printf("x: %f\n", vec4.x);
+	printf("y: %f\n", vec4.y);
+	printf("z: %f\n", vec4.z);
+	printf("w: %f\n", vec4.w);
 	printf("\n");
 }
 

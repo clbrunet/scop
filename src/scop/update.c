@@ -12,32 +12,13 @@
 #include "scop/vec4.h"
 #include "scop/utils.h"
 
-void debug(app_t *app, mat4_t final)
+void debug(app_t *app, mat4_t projection, mat4_t final)
 {
 	(void)app;
+	(void)projection;
 	(void)final;
 	static int is_first = 1;
 	if (is_first) {
-		// print_mat4(final);
-		// printf("\n");
-
-		// GLfloat vec4[4][1] = {
-		// 	{ 0.000911, },
-		// 	{ -0.001444, },
-		// 	{ 0.866024, },
-		// 	{ 1, },
-		// };
-		vec4_t vec4 = {
-			0.707182,
-			-0.407108,
-			-0.290098,
-			1,
-		};
-
-		vec4_t result = mat4_vec4_multiplication(final, vec4);
-		// print_vec4(result);
-		(void)result;
-
 		is_first = 0;
 	}
 }
@@ -45,17 +26,18 @@ void debug(app_t *app, mat4_t final)
 void update(app_t *app, GLdouble time, GLdouble delta_time)
 {
 	(void)time; (void)delta_time;
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	mat4_t yaw_mat4;
-	set_yaw_mat4(yaw_mat4, radians(time * 20));
+	set_yaw_mat4(yaw_mat4, radians(time * 40 * 1));
 	mat4_t pitch_mat4;
-	set_pitch_mat4(pitch_mat4, radians(time * 20));
+	set_pitch_mat4(pitch_mat4, radians(time * 40 * 0));
 	mat4_t roll_mat4;
-	set_roll_mat4(roll_mat4, radians(time * 20));
+	set_roll_mat4(roll_mat4, radians(time * 40 * 0));
 	mat4_t pitch_yaw_mat4;
 	mat4_multiplication(pitch_mat4, yaw_mat4, pitch_yaw_mat4);
 	mat4_t model_mat4;
+	set_identity_mat4(model_mat4);
 	mat4_multiplication(roll_mat4, pitch_yaw_mat4, model_mat4);
 
 	mat4_t view_mat4 = {
@@ -67,7 +49,7 @@ void update(app_t *app, GLdouble time, GLdouble delta_time)
 
 	mat4_t projection_mat4;
 	set_perspective_projection_mat4(projection_mat4, radians(60),
-			(GLfloat)app->window_width / (GLfloat)app->window_height);
+			(GLfloat)app->window_width / (GLfloat)app->window_height, 0.1, 100);
 
 	mat4_t view_model_mat4;
 	mat4_multiplication(view_mat4, model_mat4, view_model_mat4);
@@ -80,7 +62,7 @@ void update(app_t *app, GLdouble time, GLdouble delta_time)
 	glUniformMatrix4fv(projection_view_model_uniform_location, 1, GL_TRUE,
 			(const GLfloat *)projection_view_model_mat4);
 
-	debug(app, projection_view_model_mat4);
+	debug(app, projection_mat4, projection_view_model_mat4);
 
 	GLuint color_uniform_location = glGetUniformLocation(app->program, "color");
 	assert(color_uniform_location != (GLuint)-1);

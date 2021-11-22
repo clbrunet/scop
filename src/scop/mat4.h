@@ -7,11 +7,13 @@ typedef struct vec4_s vec4_t;
 
 typedef GLfloat mat4_t[4][4];
 
+void print_mat4(mat4_t mat4);
+
 void set_zero_mat4(mat4_t mat4);
 void set_identity_mat4(mat4_t mat4);
 
 void set_perspective_projection_mat4(mat4_t projection_mat4, GLfloat horizontal_fov,
-		GLfloat aspect_ratio);
+		GLfloat aspect_ratio, GLfloat near, GLfloat far);
 
 void set_yaw_mat4(mat4_t yaw_mat4, GLfloat angle);
 void set_pitch_mat4(mat4_t pitch_mat4, GLfloat angle);
