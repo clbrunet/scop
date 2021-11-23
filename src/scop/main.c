@@ -21,16 +21,16 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	double last_frame_time = glfwGetTime();;
+	GLdouble last_frame_time = glfwGetTime();
 	while (glfwWindowShouldClose(app.window) == GLFW_FALSE) {
-		app.current_time = glfwGetTime();
-		app.delta_time = app.current_time - last_frame_time;
+		app.time.current = glfwGetTime();
+		app.time.delta = app.time.current - last_frame_time;
 
 		update(&app);
 
 		glfwSwapBuffers(app.window);
 		glfwPollEvents();
-		last_frame_time = app.current_time;
+		last_frame_time = app.time.current;
 	}
 
 	destruction(&app);

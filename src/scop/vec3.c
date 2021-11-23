@@ -2,13 +2,24 @@
 #include <stdio.h>
 
 #include "scop/vec3.h"
+#include "scop/vec4.h"
 
 void print_vec3(const vec3_t *vec3)
 {
 	printf("x: %f\n", vec3->x);
 	printf("y: %f\n", vec3->y);
 	printf("z: %f\n", vec3->z);
-	printf("\n");
+}
+
+vec4_t vec3_to_vec4(const vec3_t *vec3)
+{
+	vec4_t vec4 = {
+		.x = vec3->x,
+		.y = vec3->y,
+		.z = vec3->z,
+		.w = 0,
+	};
+	return vec4;
 }
 
 vec3_t vec3_addition(const vec3_t *lhs, const vec3_t *rhs)

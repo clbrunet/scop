@@ -3,6 +3,8 @@
 
 #include "glad/glad.h"
 
+typedef struct vec4_s vec4_t;
+
 typedef struct vec3_s {
 	GLfloat x;
 	GLfloat y;
@@ -10,6 +12,8 @@ typedef struct vec3_s {
 }	vec3_t;
 
 void print_vec3(const vec3_t *vec3);
+
+vec4_t vec3_to_vec4(const vec3_t *vec3);
 
 vec3_t vec3_addition(const vec3_t *lhs, const vec3_t *rhs);
 

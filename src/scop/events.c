@@ -1,10 +1,15 @@
 #include <stdio.h>
+#include <stdbool.h>
 
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
 #include "glad/glad.h"
 
 #include "scop/app.h"
+#include "scop/utils.h"
+#include "scop/mat4.h"
+#include "scop/vec3.h"
+#include "scop/vec4.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
@@ -14,7 +19,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
-static void print_key(int key, int scancode, int action, int mods)
+static void debug_key(int key, int scancode, int action, int mods)
 {
 	return;
 	printf("\n");
@@ -26,25 +31,24 @@ static void print_key(int key, int scancode, int action, int mods)
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-	print_key(key, scancode, action, mods);
+	debug_key(key, scancode, action, mods);
 
 	if (action == GLFW_PRESS) {
 		if (key == GLFW_KEY_ESCAPE) {
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
 		}
+
 		if (key == GLFW_KEY_P) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-		}
-		if (key == GLFW_KEY_L) {
+		} else if (key == GLFW_KEY_L) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		}
-		if (key == GLFW_KEY_F) {
+		} else if (key == GLFW_KEY_F) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 	}
 }
 
-static void print_mouse_button(int button, int action, int mods)
+static void debug_mouse_button(int button, int action, int mods)
 {
 	return;
 	printf("\n");
@@ -55,11 +59,20 @@ static void print_mouse_button(int button, int action, int mods)
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-	(void)window;
-	print_mouse_button(button, action, mods);
+	debug_mouse_button(button, action, mods);
+	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
+
+	if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+		if (action == GLFW_PRESS) {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			app->is_entering_free_flight = true;
+		} else if (action == GLFW_RELEASE) {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+	}
 }
 
-static void print_scroll(double xoffset, double yoffset)
+static void debug_scroll(double xoffset, double yoffset)
 {
 	return;
 	printf("\n");
@@ -69,7 +82,7 @@ static void print_scroll(double xoffset, double yoffset)
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	print_scroll(xoffset, yoffset);
+	debug_scroll(xoffset, yoffset);
 
 	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
 	app->fov -= yoffset * 3;
@@ -78,4 +91,35 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	} else if (app->fov > 120) {
 		app->fov = 120;
 	}
+}
+void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE) {
+		return;
+	}
+
+	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
+
+	if (app->is_entering_free_flight) {
+		app->cursor_last_pos.x = xpos;
+		app->cursor_last_pos.y = ypos;
+		app->is_entering_free_flight = false;
+		return;
+	}
+	app->camera.rotation.y -= (xpos - app->cursor_last_pos.x) / 5;
+	app->camera.rotation.x -= (ypos - app->cursor_last_pos.y) / 5;
+
+	if (app->camera.rotation.y < -360) {
+		app->camera.rotation.y += 360;
+	} else if (app->camera.rotation.y > 360) {
+		app->camera.rotation.y -= 360;
+	}
+	if (app->camera.rotation.x < -89) {
+		app->camera.rotation.x = -89;
+	} else if (app->camera.rotation.x > 89) {
+		app->camera.rotation.x = 89;
+	}
+
+	app->cursor_last_pos.x = xpos;
+	app->cursor_last_pos.y = ypos;
 }

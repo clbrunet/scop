@@ -1,11 +1,33 @@
 #ifndef SCOP_APP_H
 #define SCOP_APP_H
 
+#include <stdbool.h>
+
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
 #include "glad/glad.h"
 
+#include "scop/vec2.h"
 #include "scop/vec3.h"
+#include "scop/vec2_double.h"
+
+typedef struct camera_s
+{
+	vec3_t position;
+	vec2_t rotation;
+}	camera_t;
+
+typedef struct update_time_s
+{
+	GLdouble current;
+	GLdouble delta;
+}	update_time_t;
+
+typedef struct uniforms_s
+{
+	GLuint projection_view_model;
+	GLuint color;
+}	uniforms_t;
 
 typedef struct app_s
 {
@@ -17,10 +39,12 @@ typedef struct app_s
 	GLuint vertex_buffer;
 	GLuint element_buffer;
 	GLsizei triangle_count;
-	double current_time;
-	double delta_time;
+	uniforms_t uniforms;
+	update_time_t time;
 	GLfloat fov;
-	vec3_t camera_position;
+	camera_t camera;
+	bool is_entering_free_flight;
+	vec2_double_t cursor_last_pos;
 }	app_t;
 
 #endif

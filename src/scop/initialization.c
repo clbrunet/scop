@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <assert.h>
 
@@ -28,27 +29,17 @@ static int initialize_glfw(app_t *app)
 		glfwTerminate();
 		return -1;
 	}
+
 	glfwSetWindowUserPointer(app->window, app);
 	glfwMakeContextCurrent(app->window);
+
 	glfwSetFramebufferSizeCallback(app->window, &framebuffer_size_callback);
 	glfwSetKeyCallback(app->window, &key_callback);
 	glfwSetMouseButtonCallback(app->window, &mouse_button_callback);
 	glfwSetScrollCallback(app->window, &scroll_callback);
+	glfwSetCursorPosCallback(app->window, &cursor_pos_callback);
 
 	glfwSwapInterval(1);
-	return 0;
-}
-
-static int initialize_gl(app_t *app)
-{
-	if (gladLoadGLLoader((GLADloadproc)&glfwGetProcAddress) == 0) {
-		fprintf(stderr, "Glad initialization failed\n");
-		return -1;
-	}
-
-	printf("OpenGL version : %s\n", glGetString(GL_VERSION));
-	glViewport(0, 0, app->window_width, app->window_height);
-	glEnable(GL_DEPTH_TEST);
 	return 0;
 }
 
@@ -123,14 +114,47 @@ static GLuint create_program(const char *vertex_shader_path, const char *fragmen
 	return program;
 }
 
+static int initialize_gl(app_t *app)
+{
+	if (gladLoadGLLoader((GLADloadproc)&glfwGetProcAddress) == 0) {
+		fprintf(stderr, "Glad initialization failed\n");
+		return -1;
+	}
+
+	printf("OpenGL version : %s\n", glGetString(GL_VERSION));
+	glViewport(0, 0, app->window_width, app->window_height);
+	glEnable(GL_DEPTH_TEST);
+
+	app->program = create_program("./shaders/vertex.glsl", "./shaders/fragment.glsl");
+	if (app->program == 0) {
+		glfwTerminate();
+		return -1;
+	}
+	glUseProgram(app->program);
+
+	app->uniforms.projection_view_model = glGetUniformLocation(app->program, "projection_view_model");
+	assert(app->uniforms.projection_view_model != (GLuint)-1);
+
+	app->uniforms.color = glGetUniformLocation(app->program, "color");
+	assert(app->uniforms.color != (GLuint)-1);
+	return 0;
+}
+
 int initialization(app_t *app)
 {
 	app->window_width = 1280;
 	app->window_height = 720;
+
 	app->fov = 90;
-	app->camera_position.x = 0;
-	app->camera_position.y = 0;
-	app->camera_position.z = 4;
+
+	app->camera.position.x = 0;
+	app->camera.position.y = 0;
+	app->camera.position.z = 4;
+	app->camera.rotation.x = 0;
+	app->camera.rotation.y = 0;
+
+	app->is_entering_free_flight = false;
+
 	if (initialize_glfw(app) == -1) {
 		return -1;
 	}
@@ -139,13 +163,6 @@ int initialization(app_t *app)
 		glfwTerminate();
 		return -1;
 	}
-
-	app->program = create_program("./shaders/vertex.glsl", "./shaders/fragment.glsl");
-	if (app->program == 0) {
-		glfwTerminate();
-		return -1;
-	}
-	glUseProgram(app->program);
 
 	int vertices_count = 16;
 	GLfloat vertices[16 * 3] = {

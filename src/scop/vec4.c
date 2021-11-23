@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "scop/vec4.h"
+#include "scop/vec3.h"
 #include "scop/mat4x1.h"
 
 void print_vec4(vec4_t vec4)
@@ -10,6 +11,16 @@ void print_vec4(vec4_t vec4)
 	printf("z: %f\n", vec4.z);
 	printf("w: %f\n", vec4.w);
 	printf("\n");
+}
+
+vec3_t vec4_to_vec3(const vec4_t *vec4)
+{
+	vec3_t vec3 = {
+		.x = vec4->x,
+		.y = vec4->y,
+		.z = vec4->z,
+	};
+	return vec3;
 }
 
 void vec4_to_mat4x1(vec4_t vec4, mat4x1_t mat4x1)
