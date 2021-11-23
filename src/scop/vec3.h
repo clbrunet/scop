@@ -9,6 +9,12 @@ typedef struct vec3_s {
 	GLfloat z;
 }	vec3_t;
 
-void print_vec3(vec3_t vec3);
+void print_vec3(const vec3_t *vec3);
+
+vec3_t vec3_addition(const vec3_t *lhs, const vec3_t *rhs);
+
+GLfloat vec3_magnitude(const vec3_t *vec3);
+void vec3_normalize(vec3_t *vec3);
+void vec3_set_magnitude(vec3_t *vec3, GLfloat magnitude);
 
 #endif

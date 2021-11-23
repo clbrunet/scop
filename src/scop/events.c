@@ -27,27 +27,20 @@ static void print_key(int key, int scancode, int action, int mods)
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
 	print_key(key, scancode, action, mods);
-	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
 
 	if (action == GLFW_PRESS) {
 		if (key == GLFW_KEY_ESCAPE) {
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
-		} else if (key == GLFW_KEY_L) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		} else if (key == GLFW_KEY_F) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		} else if (key == GLFW_KEY_P) {
+		}
+		if (key == GLFW_KEY_P) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		}
-	}
-	if (key == GLFW_KEY_W) {
-		app->camera_position.z -= 10 * app->delta_time;
-	} else if (key == GLFW_KEY_S) {
-		app->camera_position.z += 10 * app->delta_time;
-	} else if (key == GLFW_KEY_A) {
-		app->camera_position.x -= 10 * app->delta_time;
-	} else if (key == GLFW_KEY_D) {
-		app->camera_position.x += 10 * app->delta_time;
+		if (key == GLFW_KEY_L) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+		if (key == GLFW_KEY_F) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
 	}
 }
 
@@ -79,10 +72,10 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	print_scroll(xoffset, yoffset);
 
 	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
-	app->fov -= yoffset * 90 * app->delta_time;
-	if (app->fov < 1) {
-		app->fov = 1;
-	} else if (app->fov > 179) {
-		app->fov = 179;
+	app->fov -= yoffset * 3;
+	if (app->fov < 30) {
+		app->fov = 30;
+	} else if (app->fov > 120) {
+		app->fov = 120;
 	}
 }
