@@ -8,6 +8,7 @@
 #include "glad/glad.h"
 
 #include "scop/app.h"
+#include "scop/program.h"
 #include "scop/events.h"
 
 static int initialize_glfw(app_t *app)
@@ -43,77 +44,6 @@ static int initialize_glfw(app_t *app)
 	return 0;
 }
 
-char *get_file_content(const char *path)
-{
-	FILE *file = fopen(path, "rb");
-	if (file == NULL) {
-		return NULL;
-	}
-	fseek(file, 0, SEEK_END);
-	long file_size = ftell(file);
-	char *content = (char *)malloc((file_size + 1) * sizeof(char));
-	if (content == NULL) {
-		fclose(file);
-		return NULL;
-	}
-	fseek(file, 0, SEEK_SET);
-	fread(content, sizeof(char), file_size, file);
-	content[file_size] = '\0';
-	fclose(file);
-	return content;
-}
-
-static GLuint create_shader(GLenum shader_type, const char *path)
-{
-	GLchar *shader_src = get_file_content(path);
-	if (shader_src == NULL) {
-		return 0;
-	}
-	GLuint shader = glCreateShader(shader_type);
-	assert(shader != 0);
-	glShaderSource(shader, 1, (const GLchar *const *)&shader_src, NULL);
-	free(shader_src);
-	glCompileShader(shader);
-	GLint success;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-	if (success == GL_FALSE) {
-		char info_log[512];
-		glGetShaderInfoLog(shader, 512, NULL, info_log);
-		fprintf(stderr, "Vertex shader compilation error\n%s\n", info_log);
-		return 0;
-	}
-	return shader;
-}
-
-static GLuint create_program(const char *vertex_shader_path, const char *fragment_shader_path)
-{
-	GLuint vertex_shader = create_shader(GL_VERTEX_SHADER, vertex_shader_path);
-	GLuint fragment_shader = create_shader(GL_FRAGMENT_SHADER, fragment_shader_path);
-	if (vertex_shader == 0 || fragment_shader == 0) {
-		glDeleteShader(vertex_shader);
-		glDeleteShader(fragment_shader);
-		glfwTerminate();
-		return 0;
-	}
-
-	GLuint program = glCreateProgram();
-	assert(program != 0);
-	glAttachShader(program, vertex_shader);
-	glAttachShader(program, fragment_shader);
-	glLinkProgram(program);
-	glDeleteShader(vertex_shader);
-	glDeleteShader(fragment_shader);
-	GLint success;
-	glGetProgramiv(program, GL_LINK_STATUS, &success);
-	if (success == GL_FALSE) {
-		char info_log[512];
-		glGetProgramInfoLog(program, 512, NULL, info_log);
-		fprintf(stderr, "Program link error\n%s\n", info_log);
-		return 0;
-	}
-	return program;
-}
-
 static int initialize_gl(app_t *app)
 {
 	if (gladLoadGLLoader((GLADloadproc)&glfwGetProcAddress) == 0) {
@@ -134,9 +64,6 @@ static int initialize_gl(app_t *app)
 
 	app->uniforms.projection_view_model = glGetUniformLocation(app->program, "projection_view_model");
 	assert(app->uniforms.projection_view_model != (GLuint)-1);
-
-	app->uniforms.color = glGetUniformLocation(app->program, "color");
-	assert(app->uniforms.color != (GLuint)-1);
 	return 0;
 }
 
@@ -165,8 +92,8 @@ int initialization(app_t *app)
 		return -1;
 	}
 
-	int vertices_count = 16;
-	GLfloat vertices[16 * 3] = {
+	int vertices_count = 32;
+	GLfloat vertices[32 * 3] = {
 		1.000000, 1.000000, -1.000000,
 		1.000000, -1.000000, -1.000000,
 		1.000000, 1.000000, 1.000000,
@@ -183,37 +110,85 @@ int initialization(app_t *app)
 		-0.103853, -0.103853, -4.105815,
 		0.103853, 0.103853, -4.105815,
 		-0.103853, 0.103853, -4.105815,
+		1.000000, 0.333333, -1.000000,
+		1.000000, -0.333333, -1.000000,
+		1.000000, 0.333333, 1.000000,
+		1.000000, -0.333333, 1.000000,
+		1.000000, 1.000000, -0.333333,
+		1.000000, 1.000000, 0.333333,
+		1.000000, -1.000000, 0.333333,
+		1.000000, -1.000000, -0.333333,
+		1.000000, 0.333333, 0.333333,
+		1.000000, 0.333333, -0.333333,
+		1.000000, -0.333333, 0.333333,
+		1.000000, -0.333333, -0.333333,
+		1.564986, 0.027293, 0.027293,
+		1.564986, 0.027293, -0.027293,
+		1.564986, -0.027293, 0.027293,
+		1.564986, -0.027293, -0.027293,
 	};
-	app->triangle_count = 28;
-	GLuint indices[28 * 3] = {
-		6, 11, 4,
-		2, 7, 3,
-		6, 5, 7,
-		1, 7, 5,
-		0, 3, 1,
-		1, 14, 0,
-		11, 8, 10,
-		0, 8, 2,
-		4, 10, 0,
-		2, 9, 6,
-		15, 12, 13,
-		4, 13, 5,
-		5, 12, 1,
-		0, 15, 4,
-		4, 11, 10,
-		6, 9, 11,
-		11, 9, 8,
-		0, 14, 15,
-		4, 15, 13,
-		6, 4, 5,
-		15, 14, 12,
-		5, 13, 12,
-		1, 12, 14,
-		0, 2, 3,
-		1, 3, 7,
-		2, 6, 7,
-		2, 8, 9,
-		0, 10, 8,
+	app->triangle_count = 60;
+	GLuint indices[60 * 3] = {
+		8, 6, 2,
+		7, 19, 18,
+		14, 13, 15,
+		18, 6, 7,
+		14, 16, 17,
+		4, 7, 6,
+		8, 21, 20,
+		9, 4, 6,
+		20, 10, 8,
+		3, 26, 19,
+		13, 1, 5,
+		23, 5, 1,
+		15, 5, 4,
+		14, 4, 0,
+		23, 22, 7,
+		30, 24, 26,
+		18, 21, 2,
+		19, 24, 18,
+		27, 16, 25,
+		25, 0, 20,
+		31, 26, 27,
+		24, 20, 21,
+		23, 17, 27,
+		22, 27, 26,
+		30, 29, 28,
+		17, 12, 14,
+		28, 25, 24,
+		29, 27, 25,
+		11, 0, 4,
+		7, 3, 19,
+		14, 0, 16,
+		8, 2, 21,
+		22, 3, 7,
+		9, 10, 11,
+		8, 9, 6,
+		14, 12, 13,
+		18, 2, 6,
+		4, 5, 7,
+		9, 11, 4,
+		20, 0, 10,
+		3, 22, 26,
+		13, 12, 1,
+		23, 7, 5,
+		15, 13, 5,
+		14, 15, 4,
+		30, 28, 24,
+		18, 24, 21,
+		19, 26, 24,
+		27, 17, 16,
+		25, 16, 0,
+		31, 30, 26,
+		24, 25, 20,
+		23, 1, 17,
+		22, 23, 27,
+		30, 31, 29,
+		17, 1, 12,
+		28, 29, 25,
+		29, 31, 27,
+		11, 10, 0,
+		9, 8, 10,
 	};
 
 
@@ -232,7 +207,8 @@ int initialization(app_t *app)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, app->element_buffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, app->triangle_count * indices_dimension * sizeof(GLuint), indices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, vertices_dimension, GL_FLOAT, GL_FALSE, vertices_dimension * sizeof(GLfloat), (const GLvoid *)(0 * sizeof(GLfloat)));
+	glVertexAttribPointer(0, vertices_dimension, GL_FLOAT, GL_FALSE,
+			vertices_dimension * sizeof(GLfloat), (const GLvoid *)(0 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(0);
 	return 0;
 }

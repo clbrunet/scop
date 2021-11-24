@@ -17,6 +17,7 @@ SRCS = ./src/scop/main.c \
 			 ./src/scop/mat4x1.c \
 			 ./src/scop/vec4.c \
 			 ./src/scop/vec3.c \
+			 ./src/scop/program.c \
 			 ./src/scop/initialization.c \
 			 ./src/scop/events.c \
 			 ./src/scop/update.c \

@@ -122,9 +122,9 @@ void update(app_t *app)
 		glUniform4f(app->uniforms.color, white, white, white, 1);
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, (const GLvoid *)(i * 3 * sizeof(GLuint)));
 
-		white -= 0.05;
-		if (white < 0.1) {
-			white++;
+		white -= 0.015;
+		if (white < 0.2) {
+			white = 1;
 		}
 	}
 }
