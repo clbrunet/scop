@@ -154,6 +154,7 @@ int initialization(app_t *app)
 	app->camera.rotation.y = 0;
 
 	app->is_entering_free_flight = false;
+	app->should_rotate = true;
 
 	if (initialize_glfw(app) == -1) {
 		return -1;

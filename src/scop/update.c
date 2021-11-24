@@ -60,17 +60,11 @@ void process_inputs(app_t *app)
 
 void set_model_mat4(app_t *app, mat4_t model_mat4)
 {
-	mat4_t yaw_mat4;
-	set_yaw_mat4(yaw_mat4, radians(app->time.current * 40 * 0));
-	mat4_t pitch_mat4;
-	set_pitch_mat4(pitch_mat4, radians(0));
-	mat4_t roll_mat4;
-	set_roll_mat4(roll_mat4, radians(app->time.current * 40 * 0));
-
-	mat4_t pitch_yaw_mat4;
-	mat4_multiplication(pitch_mat4, yaw_mat4, pitch_yaw_mat4);
-
-	mat4_multiplication(roll_mat4, pitch_yaw_mat4, model_mat4);
+	if (app->should_rotate == false) {
+		set_identity_mat4(model_mat4);
+		return;
+	}
+	set_yaw_mat4(model_mat4, radians(app->time.current * 30));
 }
 
 void set_view_mat4(app_t *app, mat4_t view_mat4)

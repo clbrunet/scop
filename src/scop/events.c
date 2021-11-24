@@ -32,6 +32,7 @@ static void debug_key(int key, int scancode, int action, int mods)
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
 	debug_key(key, scancode, action, mods);
+	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
 
 	if (action == GLFW_PRESS) {
 		if (key == GLFW_KEY_ESCAPE) {
@@ -44,6 +45,10 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		} else if (key == GLFW_KEY_F) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+
+		if (key == GLFW_KEY_R) {
+			app->should_rotate = !app->should_rotate;
 		}
 	}
 }

@@ -45,6 +45,7 @@ typedef struct app_s
 	camera_t camera;
 	bool is_entering_free_flight;
 	vec2_double_t cursor_last_pos;
+	bool should_rotate;
 }	app_t;
 
 #endif
