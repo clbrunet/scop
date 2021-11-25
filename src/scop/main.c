@@ -7,17 +7,21 @@
 #include "glad/glad.h"
 
 #include "scop/app.h"
+#include "scop/tga.h"
 #include "scop/initialization.h"
 #include "scop/update.h"
 #include "scop/destruction.h"
+#include "scop/style.h"
 
 int main(int argc, char *argv[])
 {
-	(void)argc;
-	(void)argv;
+	if (argc != 2) {
+		printf("Usage: %s " UNDERLINED "OBJECT" RESET_UNDERLINED "\n", argv[0]);
+		return 0;
+	}
 	app_t app = {0};
 
-	if (initialization(&app) == -1) {
+	if (initialization(&app, argv[1]) == -1) {
 		return 1;
 	}
 

@@ -7,29 +7,11 @@
 #include "GLFW/glfw3.h"
 #include "glad/glad.h"
 
-static char *get_file_content(const char *path)
-{
-	FILE *file = fopen(path, "rb");
-	if (file == NULL) {
-		return NULL;
-	}
-	fseek(file, 0, SEEK_END);
-	long file_size = ftell(file);
-	char *content = (char *)malloc((file_size + 1) * sizeof(char));
-	if (content == NULL) {
-		fclose(file);
-		return NULL;
-	}
-	fseek(file, 0, SEEK_SET);
-	fread(content, sizeof(char), file_size, file);
-	content[file_size] = '\0';
-	fclose(file);
-	return content;
-}
+#include "scop/utils.h"
 
 static GLuint create_shader(GLenum shader_type, const char *path)
 {
-	GLchar *shader_src = get_file_content(path);
+	GLchar *shader_src = get_file_content(path, NULL);
 	if (shader_src == NULL) {
 		return 0;
 	}

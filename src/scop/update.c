@@ -8,10 +8,10 @@
 #include "glad/glad.h"
 
 #include "scop/app.h"
-#include "scop/vec2_double.h"
-#include "scop/vec3.h"
-#include "scop/mat4.h"
-#include "scop/vec4.h"
+#include "scop/vectors/vec2_double.h"
+#include "scop/vectors/vec3.h"
+#include "scop/matrices/mat4.h"
+#include "scop/vectors/vec4.h"
 #include "scop/utils.h"
 
 void process_inputs_movements(app_t *app)

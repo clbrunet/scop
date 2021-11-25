@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "scop/mat4.h"
-#include "scop/mat4x1.h"
-#include "scop/vec4.h"
+#include "scop/matrices/mat4.h"
+#include "scop/matrices/mat4x1.h"
+#include "scop/vectors/vec4.h"
 
 void print_mat4(mat4_t mat4)
 {

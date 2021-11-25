@@ -4,7 +4,7 @@ CC = clang
 CFLAGS = -Wall -Wextra -Werror
 CFLAGS += -I./src/ -I./ext/glad/include/ -I./ext/glfw-3.3.5/include/
 CFLAGS += -Wno-unused-function -g3
-CFLAGS += -fsanitize=address
+# CFLAGS += -fsanitize=address
 DEPSFLAGS = -MMD -MP -MF $(@:.o=.d)
 
 LDFLAGS = -lX11 -lpthread -ldl -lGL -lm -L./ext/glfw-3.3.5/build/src/ -lglfw3 -L./ext/glad/ -lglad
@@ -13,11 +13,13 @@ LIBGLAD = ext/glad/libglad.a
 
 SRCS = ./src/scop/main.c \
 			 ./src/scop/utils.c \
-			 ./src/scop/mat4.c \
-			 ./src/scop/mat4x1.c \
-			 ./src/scop/vec4.c \
-			 ./src/scop/vec3.c \
+			 ./src/scop/matrices/mat4.c \
+			 ./src/scop/matrices/mat4x1.c \
+			 ./src/scop/vectors/vec3.c \
+			 ./src/scop/vectors/vec4.c \
 			 ./src/scop/program.c \
+			 ./src/scop/tga.c \
+			 ./src/scop/load_model.c \
 			 ./src/scop/initialization.c \
 			 ./src/scop/events.c \
 			 ./src/scop/update.c \

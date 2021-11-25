@@ -1,8 +1,8 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "scop/vec3.h"
-#include "scop/vec4.h"
+#include "scop/vectors/vec3.h"
+#include "scop/vectors/vec4.h"
 
 void print_vec3(const vec3_t *vec3)
 {

@@ -7,9 +7,30 @@
 #include "GLFW/glfw3.h"
 #include "glad/glad.h"
 
+#include "scop/initialization.h"
 #include "scop/app.h"
 #include "scop/program.h"
 #include "scop/events.h"
+#include "scop/load_model.h"
+#include "scop/tga.h"
+
+static void initialize_variables(app_t *app)
+{
+	app->window_width = 1280;
+	app->window_height = 720;
+
+	app->fov = 90;
+
+	app->camera.position.x = 0;
+	app->camera.position.y = 0;
+	app->camera.position.z = 4;
+
+	app->camera.rotation.x = 0;
+	app->camera.rotation.y = 0;
+
+	app->is_entering_free_flight = false;
+	app->should_rotate = true;
+}
 
 static int initialize_glfw(app_t *app)
 {
@@ -67,134 +88,23 @@ static int initialize_gl(app_t *app)
 	return 0;
 }
 
-int initialization(app_t *app)
+int initialization(app_t *app, const char *object_path)
 {
-	app->window_width = 1280;
-	app->window_height = 720;
-
-	app->fov = 90;
-
-	app->camera.position.x = 0;
-	app->camera.position.y = 0;
-	app->camera.position.z = 4;
-	app->camera.rotation.x = 0;
-	app->camera.rotation.y = 0;
-
-	app->is_entering_free_flight = false;
-	app->should_rotate = true;
-
+	initialize_variables(app);
 	if (initialize_glfw(app) == -1) {
 		return -1;
 	}
-
 	if (initialize_gl(app) == -1) {
 		glfwTerminate();
 		return -1;
 	}
 
-	int vertices_count = 32;
-	GLfloat vertices[32 * 3] = {
-		1.000000, 1.000000, -1.000000,
-		1.000000, -1.000000, -1.000000,
-		1.000000, 1.000000, 1.000000,
-		1.000000, -1.000000, 1.000000,
-		-1.000000, 1.000000, -1.000000,
-		-1.000000, -1.000000, -1.000000,
-		-1.000000, 1.000000, 1.000000,
-		-1.000000, -1.000000, 1.000000,
-		0.400619, 1.670410, 0.400619,
-		-0.400619, 1.670410, 0.400619,
-		0.400619, 1.670410, -0.400619,
-		-0.400619, 1.670410, -0.400619,
-		0.103853, -0.103853, -4.105815,
-		-0.103853, -0.103853, -4.105815,
-		0.103853, 0.103853, -4.105815,
-		-0.103853, 0.103853, -4.105815,
-		1.000000, 0.333333, -1.000000,
-		1.000000, -0.333333, -1.000000,
-		1.000000, 0.333333, 1.000000,
-		1.000000, -0.333333, 1.000000,
-		1.000000, 1.000000, -0.333333,
-		1.000000, 1.000000, 0.333333,
-		1.000000, -1.000000, 0.333333,
-		1.000000, -1.000000, -0.333333,
-		1.000000, 0.333333, 0.333333,
-		1.000000, 0.333333, -0.333333,
-		1.000000, -0.333333, 0.333333,
-		1.000000, -0.333333, -0.333333,
-		1.564986, 0.027293, 0.027293,
-		1.564986, 0.027293, -0.027293,
-		1.564986, -0.027293, 0.027293,
-		1.564986, -0.027293, -0.027293,
-	};
-	app->triangle_count = 60;
-	GLuint indices[60 * 3] = {
-		8, 6, 2,
-		7, 19, 18,
-		14, 13, 15,
-		18, 6, 7,
-		14, 16, 17,
-		4, 7, 6,
-		8, 21, 20,
-		9, 4, 6,
-		20, 10, 8,
-		3, 26, 19,
-		13, 1, 5,
-		23, 5, 1,
-		15, 5, 4,
-		14, 4, 0,
-		23, 22, 7,
-		30, 24, 26,
-		18, 21, 2,
-		19, 24, 18,
-		27, 16, 25,
-		25, 0, 20,
-		31, 26, 27,
-		24, 20, 21,
-		23, 17, 27,
-		22, 27, 26,
-		30, 29, 28,
-		17, 12, 14,
-		28, 25, 24,
-		29, 27, 25,
-		11, 0, 4,
-		7, 3, 19,
-		14, 0, 16,
-		8, 2, 21,
-		22, 3, 7,
-		9, 10, 11,
-		8, 9, 6,
-		14, 12, 13,
-		18, 2, 6,
-		4, 5, 7,
-		9, 11, 4,
-		20, 0, 10,
-		3, 22, 26,
-		13, 12, 1,
-		23, 7, 5,
-		15, 13, 5,
-		14, 15, 4,
-		30, 28, 24,
-		18, 24, 21,
-		19, 26, 24,
-		27, 17, 16,
-		25, 16, 0,
-		31, 30, 26,
-		24, 25, 20,
-		23, 1, 17,
-		22, 23, 27,
-		30, 31, 29,
-		17, 1, 12,
-		28, 29, 25,
-		29, 31, 27,
-		11, 10, 0,
-		9, 8, 10,
-	};
-
-
-	int vertices_dimension = 3;
-	int indices_dimension = 3;
-
+	model_t model;
+	if (load_model(&model, object_path) == -1) {
+		glfwTerminate();
+		return -1;
+	}
+	app->triangle_count = model.triangle_count;
 	glGenVertexArrays(1, &app->vertex_array);
 	glGenBuffers(1, &app->vertex_buffer);
 	glGenBuffers(1, &app->element_buffer);
@@ -202,13 +112,34 @@ int initialization(app_t *app)
 	glBindVertexArray(app->vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, app->vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, vertices_count * vertices_dimension * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, model.vertex_count * sizeof(vec3_t), model.vertices, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, app->element_buffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, app->triangle_count * indices_dimension * sizeof(GLuint), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, model.triangle_count * sizeof(triangle_t), model.triangles, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, vertices_dimension, GL_FLOAT, GL_FALSE,
-			vertices_dimension * sizeof(GLfloat), (const GLvoid *)(0 * sizeof(GLfloat)));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (const GLvoid *)0);
 	glEnableVertexAttribArray(0);
+	free(model.vertices);
+	free(model.triangles);
+
+	// @todo textures
+	// glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
+	// 		(3 + 2) * sizeof(GLfloat), (const GLvoid *)(3 * sizeof(GLfloat)));
+	// glEnableVertexAttribArray(1);
+
+	// int width;
+	// int height;
+	// int channel_count;
+	// unsigned char *data = tga_load("./textures/blue.tga", &width, &height, &channel_count);
+	// if (data == NULL) {
+	// 	glfwTerminate();
+	// 	return 1;
+	// }
+	// unsigned int texture;
+	// glGenTextures(1, &texture);
+	// glBindTexture(GL_TEXTURE_2D, texture);
+	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
+	// glGenerateMipmap(GL_TEXTURE_2D);
+	// free(data);
 	return 0;
 }

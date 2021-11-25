@@ -1,8 +1,8 @@
 #include <stdio.h>
 
-#include "scop/vec4.h"
-#include "scop/vec3.h"
-#include "scop/mat4x1.h"
+#include "scop/vectors/vec4.h"
+#include "scop/vectors/vec3.h"
+#include "scop/matrices/mat4x1.h"
 
 void print_vec4(vec4_t vec4)
 {

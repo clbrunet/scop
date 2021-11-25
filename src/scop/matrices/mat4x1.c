@@ -1,5 +1,5 @@
-#include "scop/mat4x1.h"
-#include "scop/vec4.h"
+#include "scop/matrices/mat4x1.h"
+#include "scop/vectors/vec4.h"
 
 vec4_t mat4x1_to_vec4(mat4x1_t mat4x1)
 {

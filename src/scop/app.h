@@ -7,9 +7,9 @@
 #include "GLFW/glfw3.h"
 #include "glad/glad.h"
 
-#include "scop/vec2.h"
-#include "scop/vec3.h"
-#include "scop/vec2_double.h"
+#include "scop/vectors/vec2.h"
+#include "scop/vectors/vec3.h"
+#include "scop/vectors/vec2_double.h"
 
 typedef struct camera_s
 {
