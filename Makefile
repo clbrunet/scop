@@ -1,15 +1,16 @@
 NAME = scop
 
+LIBGLFW3 = ext/glfw-3.3.5/build/src/libglfw3.a
+LIBGLAD = ext/glad/libglad.a
+
 CC = clang
 CFLAGS = -Wall -Wextra -Werror
 CFLAGS += -I./src/ -I./ext/glad/include/ -I./ext/glfw-3.3.5/include/
 CFLAGS += -Wno-unused-function -g3
 # CFLAGS += -fsanitize=address
 DEPSFLAGS = -MMD -MP -MF $(@:.o=.d)
-
-LDFLAGS = -lX11 -lpthread -ldl -lGL -lm -L./ext/glfw-3.3.5/build/src/ -lglfw3 -L./ext/glad/ -lglad
-LIBGLFW3 = ext/glfw-3.3.5/build/src/libglfw3.a
-LIBGLAD = ext/glad/libglad.a
+LDFLAGS = -L./ext/glfw-3.3.5/build/src/ -L./ext/glad/
+LDLIBS = -lX11 -lpthread -ldl -lGL -lm -lglfw3 -lglad
 
 SRCS = ./src/scop/main.c \
 			 ./src/scop/utils.c \
@@ -44,15 +45,15 @@ $(LIBGLAD):
 	$(CC) $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -o $@ -c $<
 
 $(NAME): $(LIBGLFW3) $(LIBGLAD) $(OBJS)
-	$(CC) $(CFLAGS) -o $(NAME) $(OBJS) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(NAME) $(OBJS) $(LDLIBS)
 
 .PHONY: clean
 clean:
-	rm -f $(OBJS) $(DEPS)
+	$(RM) $(OBJS) $(DEPS)
 
 .PHONY: fclean
 fclean: clean
-	rm -f $(NAME)
+	$(RM) $(NAME)
 
 .PHONY: re
 re: fclean all
