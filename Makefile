@@ -7,7 +7,7 @@ CC = clang
 CFLAGS = -Wall -Wextra -Werror
 CFLAGS += -I./src/ -I./ext/glad/include/ -I./ext/glfw-3.3.5/include/
 CFLAGS += -Wno-unused-function -g3
-# CFLAGS += -fsanitize=address
+CFLAGS += -fsanitize=address
 DEPSFLAGS = -MMD -MP -MF $(@:.o=.d)
 LDFLAGS = -L./ext/glfw-3.3.5/build/src/ -L./ext/glad/
 LDLIBS = -lX11 -lpthread -ldl -lGL -lm -lglfw3 -lglad

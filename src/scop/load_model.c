@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -11,14 +12,16 @@
 static int count_triangle(char *face_datas)
 {
 	int count = 0;
+
+	while (isspace(*face_datas)) {
+		face_datas++;
+	}
 	while (*face_datas != '\0') {
-		if (isdigit(*face_datas)) {
-			count++;
-			while (*face_datas != '\0' && *face_datas != ' ') {
-				face_datas++;
-			}
+		count++;
+		while (*face_datas != '\0' && !isspace(*face_datas)) {
+			face_datas++;
 		}
-		if (*face_datas != '\0') {
+		while (isspace(*face_datas)) {
 			face_datas++;
 		}
 	}
@@ -46,13 +49,19 @@ static int fill_model_datas_face(char *face_datas, triangle_t *triangles, int *t
 {
 	int n;
 
+	while (isspace(*face_datas)) {
+		face_datas++;
+	}
 	for (size_t i = 0; i < 3; i++) {
 		if (sscanf(face_datas, "%u%n", &triangles[*triangle_i][i], &n) != 1) {
 			return -1;
 		}
 		triangles[*triangle_i][i]--;
 		face_datas += n;
-		while (*face_datas != '\0' && *face_datas != ' ') {
+		while (*face_datas != '\0' && !isspace(*face_datas)) {
+			face_datas++;
+		}
+		while (isspace(*face_datas)) {
 			face_datas++;
 		}
 	}
@@ -65,7 +74,10 @@ static int fill_model_datas_face(char *face_datas, triangle_t *triangles, int *t
 		}
 		triangles[*triangle_i][2]--;
 		face_datas += n;
-		while (*face_datas != '\0' && *face_datas != ' ') {
+		while (*face_datas != '\0' && !isspace(*face_datas)) {
+			face_datas++;
+		}
+		while (isspace(*face_datas)) {
 			face_datas++;
 		}
 		*triangle_i += 1;

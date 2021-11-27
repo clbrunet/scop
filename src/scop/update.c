@@ -97,7 +97,7 @@ void set_projection_view_model_mat4(app_t *app, mat4_t projection_view_model_mat
 
 	mat4_t projection_mat4;
 	set_perspective_projection_mat4(projection_mat4, radians(app->fov),
-			(GLfloat)app->window_width / (GLfloat)app->window_height, 0.1, 100);
+			(GLfloat)app->window_width / (GLfloat)app->window_height, 0.1, 1000);
 
 	mat4_t view_model_mat4;
 	mat4_multiplication(view_mat4, model_mat4, view_model_mat4);
