@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
@@ -12,11 +13,12 @@
 #include "scop/vectors/vec3.h"
 #include "scop/matrices/mat4.h"
 #include "scop/vectors/vec4.h"
-#include "scop/utils.h"
+#include "scop/utils/math.h"
 
 void process_inputs_movements(app_t *app)
 {
 	if (glfwGetMouseButton(app->window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE) {
+		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 		return;
 	}
 	vec3_t movement = { 0 };
@@ -38,6 +40,8 @@ void process_inputs_movements(app_t *app)
 	if (glfwGetKey(app->window, GLFW_KEY_Q) == GLFW_PRESS) {
 		movement.y++;
 	}
+	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
+
 	mat4_t pitch_mat4;
 	set_pitch_mat4(pitch_mat4, radians(app->camera.rotation.x));
 	mat4_t yaw_mat4;
@@ -60,7 +64,7 @@ void process_inputs(app_t *app)
 
 void set_model_mat4(app_t *app, mat4_t model_mat4)
 {
-	if (app->should_rotate == false) {
+	if (app->should_model_rotate == false) {
 		set_identity_mat4(model_mat4);
 		return;
 	}
@@ -97,7 +101,7 @@ void set_projection_view_model_mat4(app_t *app, mat4_t projection_view_model_mat
 
 	mat4_t projection_mat4;
 	set_perspective_projection_mat4(projection_mat4, radians(app->fov),
-			(GLfloat)app->window_width / (GLfloat)app->window_height, 0.1, 500);
+			(GLfloat)app->window_width / (GLfloat)app->window_height, 0.1, 1000);
 
 	mat4_t view_model_mat4;
 	mat4_multiplication(view_mat4, model_mat4, view_model_mat4);
@@ -108,6 +112,7 @@ void set_projection_view_model_mat4(app_t *app, mat4_t projection_view_model_mat
 void update(app_t *app)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	assert(glGetError() == GL_NO_ERROR);
 
 	process_inputs(app);
 
@@ -116,12 +121,16 @@ void update(app_t *app)
 
 	glUniformMatrix4fv(app->uniforms.projection_view_model, 1, GL_TRUE,
 			(const GLfloat *)projection_view_model_mat4);
+	assert(glGetError() == GL_NO_ERROR);
 
 	GLfloat white = 1;
 	GLfloat white_shift = -0.01;
 	for (GLsizei i = 0; i < app->triangle_count; i++) {
 		glUniform4f(app->uniforms.color, white, white, white, 1);
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, (const GLvoid *)(i * 3 * sizeof(GLuint)));
+		assert(glGetError() == GL_NO_ERROR);
+		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT,
+				(const GLvoid *)(i * 3 * sizeof(GLuint)));
+		assert(glGetError() == GL_NO_ERROR);
 
 		white += white_shift;
 		if (white < 0.3 || 1 < white) {

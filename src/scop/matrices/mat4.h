@@ -1,5 +1,5 @@
-#ifndef SCOP_MAT4_H
-#define SCOP_MAT4_H
+#ifndef SCOP_MATRICES_MAT4_H
+#define SCOP_MATRICES_MAT4_H
 
 #include "glad/glad.h"
 

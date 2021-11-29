@@ -1,5 +1,5 @@
-#ifndef SCOP_VEC2_DOUBLE_H
-#define SCOP_VEC2_DOUBLE_H
+#ifndef SCOP_VECTORS_VEC2_DOUBLE_H
+#define SCOP_VECTORS_VEC2_DOUBLE_H
 
 #include "glad/glad.h"
 

@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <math.h>
 
@@ -44,6 +45,10 @@ void set_identity_mat4(mat4_t mat4)
 void set_perspective_projection_mat4(mat4_t projection_mat4, GLfloat horizontal_fov,
 		GLfloat aspect_ratio, GLfloat near, GLfloat far)
 {
+	assert(!isnanf(horizontal_fov) && !isinff(horizontal_fov));
+	assert(0 < horizontal_fov && horizontal_fov < 180);
+	assert(near >= 0 && far >= 0);
+
 	set_zero_mat4(projection_mat4);
 	GLfloat projection_plane_distance = aspect_ratio / tan(horizontal_fov / 2);
 	projection_mat4[0][0] = projection_plane_distance / aspect_ratio;
@@ -58,6 +63,8 @@ void set_perspective_projection_mat4(mat4_t projection_mat4, GLfloat horizontal_
 // angle in radians
 void set_yaw_mat4(mat4_t yaw_mat4, GLfloat angle)
 {
+	assert(!isnanf(angle) && !isinff(angle));
+
 	set_identity_mat4(yaw_mat4);
 	yaw_mat4[0][0] = cos(angle);
 	yaw_mat4[0][2] = sin(angle);
@@ -68,6 +75,8 @@ void set_yaw_mat4(mat4_t yaw_mat4, GLfloat angle)
 // angle in radians
 void set_pitch_mat4(mat4_t pitch_mat4, GLfloat angle)
 {
+	assert(angle != NAN && angle != INFINITY);
+
 	set_identity_mat4(pitch_mat4);
 	pitch_mat4[1][1] = cos(angle);
 	pitch_mat4[1][2] = -sin(angle);
@@ -78,6 +87,8 @@ void set_pitch_mat4(mat4_t pitch_mat4, GLfloat angle)
 // angle in radians
 void set_roll_mat4(mat4_t roll_mat4, GLfloat angle)
 {
+	assert(!isnanf(angle) && !isinff(angle));
+
 	set_identity_mat4(roll_mat4);
 	roll_mat4[0][0] = cos(angle);
 	roll_mat4[0][1] = -sin(angle);
@@ -101,7 +112,7 @@ vec4_t mat4_vec4_multiplication(mat4_t mat4, vec4_t vec4)
 {
 	mat4x1_t mat4x1;
 	vec4_to_mat4x1(vec4, mat4x1);
-	mat4x1_t result_mat4x1 = { 0 };
+	mat4x1_t result_mat4x1 = { { 0 } };
 
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {

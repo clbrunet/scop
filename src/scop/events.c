@@ -6,7 +6,6 @@
 #include "glad/glad.h"
 
 #include "scop/app.h"
-#include "scop/utils.h"
 #include "scop/matrices/mat4.h"
 #include "scop/vectors/vec3.h"
 #include "scop/vectors/vec4.h"
@@ -48,7 +47,11 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 		}
 
 		if (key == GLFW_KEY_R) {
-			app->should_rotate = !app->should_rotate;
+			if (app->should_model_rotate == true) {
+				app->should_model_rotate = false;
+			} else {
+				app->should_model_rotate = true;
+			}
 		}
 	}
 }

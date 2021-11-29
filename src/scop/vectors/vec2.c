@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "scop/vec2.h"
-#include "scop/vec4.h"
+#include "scop/vectors/vec2.h"
+#include "scop/vectors/vec4.h"
 
 void print_vec2(const vec2_t *vec2)
 {

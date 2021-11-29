@@ -1,26 +1,34 @@
-NAME = scop
+NAME := scop
 
-LIBGLFW3 = ext/glfw-3.3.5/build/src/libglfw3.a
-LIBGLAD = ext/glad/libglad.a
+LIBGLFW3 := ext/glfw-3.3.5/build/src/libglfw3.a
+LIBGLAD := ext/glad/libglad.a
 
-CC = clang
-CFLAGS = -Wall -Wextra -Werror
+CC := clang
+CFLAGS := -Wall -Wextra -Werror
 CFLAGS += -I./src/ -I./ext/glad/include/ -I./ext/glfw-3.3.5/include/
 CFLAGS += -Wno-unused-function -g3
 CFLAGS += -fsanitize=address
-DEPSFLAGS = -MMD -MP -MF $(@:.o=.d)
-LDFLAGS = -L./ext/glfw-3.3.5/build/src/ -L./ext/glad/
-LDLIBS = -lX11 -lpthread -ldl -lGL -lm -lglfw3 -lglad
+LDFLAGS := -L./ext/glfw-3.3.5/build/src/ -L./ext/glad/
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	LDLIBS := -lX11 -lpthread -ldl -lGL -lm -lglfw3 -lglad
+endif
+ifeq ($(UNAME_S),Darwin)
+	LDLIBS := -framework Cocoa -framework OpenGL -framework IOKit -lglfw3 -lglad
+endif
 
 SRCS = ./src/scop/main.c \
-			 ./src/scop/utils.c \
+			 ./src/scop/utils/file.c \
+			 ./src/scop/utils/string.c \
+			 ./src/scop/utils/math.c \
 			 ./src/scop/matrices/mat4.c \
 			 ./src/scop/matrices/mat4x1.c \
+			 ./src/scop/vectors/vec2.c \
 			 ./src/scop/vectors/vec3.c \
 			 ./src/scop/vectors/vec4.c \
-			 ./src/scop/program.c \
-			 ./src/scop/tga.c \
-			 ./src/scop/load_model.c \
+			 ./src/scop/create_program.c \
+			 ./src/scop/load_tga.c \
+			 ./src/scop/load_obj.c \
 			 ./src/scop/initialization.c \
 			 ./src/scop/events.c \
 			 ./src/scop/update.c \
