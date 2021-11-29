@@ -23,7 +23,7 @@ static void initialize_variables(app_t *app)
 
 	app->camera.position.x = 0;
 	app->camera.position.y = 0;
-	app->camera.position.z = 4;
+	app->camera.position.z = 10;
 
 	app->camera.rotation.x = 0;
 	app->camera.rotation.y = 0;

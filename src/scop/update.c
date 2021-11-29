@@ -97,7 +97,7 @@ void set_projection_view_model_mat4(app_t *app, mat4_t projection_view_model_mat
 
 	mat4_t projection_mat4;
 	set_perspective_projection_mat4(projection_mat4, radians(app->fov),
-			(GLfloat)app->window_width / (GLfloat)app->window_height, 0.1, 1000);
+			(GLfloat)app->window_width / (GLfloat)app->window_height, 0.1, 500);
 
 	mat4_t view_model_mat4;
 	mat4_multiplication(view_mat4, model_mat4, view_model_mat4);
@@ -118,13 +118,15 @@ void update(app_t *app)
 			(const GLfloat *)projection_view_model_mat4);
 
 	GLfloat white = 1;
+	GLfloat white_shift = -0.01;
 	for (GLsizei i = 0; i < app->triangle_count; i++) {
 		glUniform4f(app->uniforms.color, white, white, white, 1);
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, (const GLvoid *)(i * 3 * sizeof(GLuint)));
 
-		white -= 0.015;
-		if (white < 0.2) {
-			white = 1;
+		white += white_shift;
+		if (white < 0.3 || 1 < white) {
+			white_shift = -white_shift;
+			white += white_shift;
 		}
 	}
 }
