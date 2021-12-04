@@ -119,6 +119,30 @@ static void fill_model_datas(model_t *model, char **lines)
 	}
 }
 
+static void  center_model(model_t *model)
+{
+	vec3_t mean = {};
+	vec3_t *vertices_it;
+
+	vertices_it = model->vertices;
+	for (GLsizei i = 0; i < model->vertex_count; i++) {
+		mean.x += vertices_it->x;
+		mean.y += vertices_it->y;
+		mean.z += vertices_it->z;
+		vertices_it++;
+	}
+	mean.x /= model->vertex_count;
+	mean.y /= model->vertex_count;
+	mean.z /= model->vertex_count;
+	vertices_it = model->vertices;
+	for (GLsizei i = 0; i < model->vertex_count; i++) {
+		vertices_it->x -= mean.x;
+		vertices_it->y -= mean.y;
+		vertices_it->z -= mean.z;
+		vertices_it++;
+	}
+}
+
 int load_obj(model_t *model, const char *path)
 {
 	char *file_content = read_file(path, NULL);
@@ -146,6 +170,6 @@ int load_obj(model_t *model, const char *path)
 	fill_model_datas(model, lines);
 	free_strs(lines);
 
-	// @todo center object
+	center_model(model);
 	return 0;
 }

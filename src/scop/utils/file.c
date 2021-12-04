@@ -9,7 +9,7 @@ char *read_file(const char *path, size_t *file_length_ptr)
 
 	FILE *file = fopen(path, "rb");
 	if (file == NULL) {
-		err(1, "%s", path);
+		err(1, "'%s'", path);
 		return NULL;
 	}
 

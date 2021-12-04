@@ -124,7 +124,7 @@ void update(app_t *app)
 	assert(glGetError() == GL_NO_ERROR);
 
 	GLfloat white = 1;
-	GLfloat white_shift = -0.01;
+	GLfloat white_shift = -0.04;
 	for (GLsizei i = 0; i < app->triangle_count; i++) {
 		glUniform4f(app->uniforms.color, white, white, white, 1);
 		assert(glGetError() == GL_NO_ERROR);
