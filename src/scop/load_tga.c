@@ -16,7 +16,7 @@ unsigned char *load_tga(const char *path, int *width, int *height, int *channel_
 		return NULL;
 	}
 	if (file_length < 18) {
-		fprintf(stderr, "%s isn't in a valid Truevision TGA format.\n", path);
+		fprintf(stderr, "Image '%s' isn't in a valid Truevision TGA format.\n", path);
 		free(file_content);
 		return NULL;
 	}
@@ -43,7 +43,7 @@ unsigned char *load_tga(const char *path, int *width, int *height, int *channel_
 	unsigned int data_offset = 18 + id_length + color_map_length * (color_map_entry_size / 8);
 	size_t data_length = *width * *height * *channel_count;
 	if (file_length != data_offset + data_length) {
-		fprintf(stderr, "%s isn't in a valid Truevision TGA format.\n", path);
+		fprintf(stderr, "Image '%s' isn't in a valid Truevision TGA format.\n", path);
 		free(file_content);
 		return NULL;
 	}

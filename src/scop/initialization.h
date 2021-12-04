@@ -8,9 +8,9 @@ typedef GLuint triangle_t[3];
 
 typedef struct model_s
 {
-	GLsizei vertex_count;
+	GLuint vertex_count;
 	vec3_t *vertices;
-	GLsizei triangle_count;
+	GLuint triangle_count;
 	triangle_t *triangles;
 }	model_t;
 
