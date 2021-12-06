@@ -34,12 +34,6 @@ void process_inputs_movements(app_t *app)
 	if (glfwGetKey(app->window, GLFW_KEY_D) == GLFW_PRESS) {
 		movement.x++;
 	}
-	if (glfwGetKey(app->window, GLFW_KEY_E) == GLFW_PRESS) {
-		movement.y--;
-	}
-	if (glfwGetKey(app->window, GLFW_KEY_Q) == GLFW_PRESS) {
-		movement.y++;
-	}
 	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 
 	mat4_t pitch_mat4;
@@ -52,6 +46,14 @@ void process_inputs_movements(app_t *app)
 
 	vec4_t movement_vec4 = mat4_vec4_multiplication(rotation_mat4, vec3_to_vec4(&movement));
 	movement = vec4_to_vec3(&movement_vec4);
+
+	if (glfwGetKey(app->window, GLFW_KEY_Q) == GLFW_PRESS) {
+		movement.y--;
+	}
+	if (glfwGetKey(app->window, GLFW_KEY_E) == GLFW_PRESS) {
+		movement.y++;
+	}
+	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 
 	vec3_set_magnitude(&movement, 10 * app->time.delta);
 	app->camera.position = vec3_addition(&app->camera.position, &movement);
