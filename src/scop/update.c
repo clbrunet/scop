@@ -21,7 +21,9 @@ void process_inputs_movements(app_t *app)
 		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 		return;
 	}
-	vec3_t movement = { 0 };
+
+	vec3_t movement = {};
+
 	if (glfwGetKey(app->window, GLFW_KEY_W) == GLFW_PRESS) {
 		movement.z--;
 	}
@@ -55,7 +57,15 @@ void process_inputs_movements(app_t *app)
 	}
 	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 
-	vec3_set_magnitude(&movement, 10 * app->time.delta);
+	GLfloat speed;
+	if (glfwGetKey(app->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+		speed = 20;
+	} else if (glfwGetKey(app->window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS) {
+		speed = 1;
+	} else {
+		speed = 8;
+	}
+	vec3_set_magnitude(&movement, speed * app->time.delta);
 	app->camera.position = vec3_addition(&app->camera.position, &movement);
 }
 
