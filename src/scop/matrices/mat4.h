@@ -12,6 +12,8 @@ void print_mat4(mat4_t mat4);
 void set_zero_mat4(mat4_t mat4);
 void set_identity_mat4(mat4_t mat4);
 
+void set_orthographic_projection_mat4(mat4_t orthographic_mat4, GLfloat left, GLfloat right,
+		GLfloat bottom, GLfloat top, GLfloat near, GLfloat far);
 void set_perspective_projection_mat4(mat4_t projection_mat4, GLfloat horizontal_fov,
 		GLfloat aspect_ratio, GLfloat near, GLfloat far);
 

@@ -4,12 +4,12 @@
 #include "scop/vectors/vec3.h"
 #include "scop/matrices/mat4x1.h"
 
-void print_vec4(vec4_t vec4)
+void print_vec4(const vec4_t *vec4)
 {
-	printf("x: %f\n", vec4.x);
-	printf("y: %f\n", vec4.y);
-	printf("z: %f\n", vec4.z);
-	printf("w: %f\n", vec4.w);
+	printf("x: %f\n", vec4->x);
+	printf("y: %f\n", vec4->y);
+	printf("z: %f\n", vec4->z);
+	printf("w: %f\n", vec4->w);
 	printf("\n");
 }
 

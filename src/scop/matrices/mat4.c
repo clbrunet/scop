@@ -41,6 +41,26 @@ void set_identity_mat4(mat4_t mat4)
 	}
 }
 
+void set_orthographic_projection_mat4(mat4_t orthographic_mat4, GLfloat left, GLfloat right,
+		GLfloat bottom, GLfloat top, GLfloat near, GLfloat far)
+{
+	assert(near >= 0 && far >= 0);
+
+	set_zero_mat4(orthographic_mat4);
+
+	orthographic_mat4[0][0] = 2 / (right - left);
+	orthographic_mat4[0][3] = -(left + right) / (right - left);
+
+	orthographic_mat4[1][1] = 2 / (top - bottom);
+	orthographic_mat4[1][3] = -(bottom + top) / (top - bottom);
+
+	orthographic_mat4[2][2] = -2 / (far - near);
+	orthographic_mat4[2][3] = -(far + near) / (far - near);
+
+	orthographic_mat4[3][3] = 1;
+}
+
+
 // horizontal_fov in radians
 void set_perspective_projection_mat4(mat4_t projection_mat4, GLfloat horizontal_fov,
 		GLfloat aspect_ratio, GLfloat near, GLfloat far)
@@ -50,11 +70,12 @@ void set_perspective_projection_mat4(mat4_t projection_mat4, GLfloat horizontal_
 	assert(near >= 0 && far >= 0);
 
 	set_zero_mat4(projection_mat4);
+
 	GLfloat projection_plane_distance = aspect_ratio / tan(horizontal_fov / 2);
 	projection_mat4[0][0] = projection_plane_distance / aspect_ratio;
 	projection_mat4[1][1] = projection_plane_distance;
 
-	projection_mat4[2][2] = -1 * (-near - far) / (near - far);
+	projection_mat4[2][2] = (near + far) / (near - far);
 	projection_mat4[2][3] = (2 * far * near) / (near - far);
 
 	projection_mat4[3][2] = -1;

@@ -14,7 +14,7 @@ typedef struct vec4_s {
 	GLfloat w;
 }	vec4_t;
 
-void print_vec4(vec4_t vec4);
+void print_vec4(const vec4_t *vec4);
 
 vec3_t vec4_to_vec3(const vec4_t *vec4);
 void vec4_to_mat4x1(vec4_t vec4, mat4x1_t mat4x1);
