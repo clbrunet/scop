@@ -102,8 +102,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
 	app->fov -= yoffset * 3;
-	if (app->fov < 30) {
-		app->fov = 30;
+	if (app->fov < 60) {
+		app->fov = 60;
 	} else if (app->fov > 120) {
 		app->fov = 120;
 	}
