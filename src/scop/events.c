@@ -53,6 +53,14 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 				app->should_model_rotate = true;
 			}
 		}
+
+		if (key == GLFW_KEY_O) {
+			if (app->should_use_orthographic == false) {
+				app->should_use_orthographic = true;
+			} else {
+				app->should_use_orthographic = false;
+			}
+		}
 	}
 }
 

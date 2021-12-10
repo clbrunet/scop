@@ -111,8 +111,17 @@ void set_projection_view_model_mat4(app_t *app, mat4_t projection_view_model_mat
 	set_view_mat4(app, view_mat4);
 
 	mat4_t projection_mat4;
-	set_perspective_projection_mat4(projection_mat4, radians(app->fov),
-			(GLfloat)app->window_width / (GLfloat)app->window_height, 0.1, 1000);
+	GLfloat aspect_ratio = (GLfloat)app->window_width / (GLfloat)app->window_height;
+	if (app->should_use_orthographic == true) {
+		set_orthographic_projection_mat4(projection_mat4,
+				app->model_cubic_bounding_box.min * aspect_ratio,
+				app->model_cubic_bounding_box.max * aspect_ratio,
+				app->model_cubic_bounding_box.min,
+				app->model_cubic_bounding_box.max, 0.1, 1000);
+	} else {
+		set_perspective_projection_mat4(projection_mat4, radians(app->fov),
+				aspect_ratio, 0.1, 1000);
+	}
 
 	mat4_t view_model_mat4;
 	mat4_multiplication(view_mat4, model_mat4, view_model_mat4);
@@ -129,9 +138,6 @@ void update(app_t *app)
 
 	mat4_t projection_view_model_mat4;
 	set_projection_view_model_mat4(app, projection_view_model_mat4);
-	vec4_t vec4 = { .x = 2, .y = 2, .z = 0, .w = 1 };
-	vec4 = mat4_vec4_multiplication(projection_view_model_mat4, vec4);
-	print_vec4(&vec4);
 
 	glUniformMatrix4fv(app->uniforms.projection_view_model, 1, GL_TRUE,
 			(const GLfloat *)projection_view_model_mat4);

@@ -175,24 +175,45 @@ static int fill_model_datas(model_t *model, char **lines)
 
 static void  center_model(model_t *model)
 {
-	vec3_t mean = {};
+	vec3_t min = {};
+	vec3_t max = {};
 	vec3_t *vertices_it;
 
 	vertices_it = model->vertices;
 	for (GLuint i = 0; i < model->vertex_count; i++) {
-		mean.x += vertices_it->x;
-		mean.y += vertices_it->y;
-		mean.z += vertices_it->z;
+		if (vertices_it->x < min.x) {
+			min.x = vertices_it->x;
+		}
+		if (vertices_it->y < min.y) {
+			min.y = vertices_it->y;
+		}
+		if (vertices_it->z < min.z) {
+			min.z = vertices_it->z;
+		}
+
+		if (max.x < vertices_it->x) {
+			max.x = vertices_it->x;
+		}
+		if (max.y < vertices_it->y) {
+			max.y = vertices_it->y;
+		}
+		if (max.z < vertices_it->z) {
+			max.z = vertices_it->z;
+		}
 		vertices_it++;
 	}
-	mean.x /= model->vertex_count;
-	mean.y /= model->vertex_count;
-	mean.z /= model->vertex_count;
+
+	vec3_t center = {
+		.x = (min.x + max.x) / 2,
+		.y = (min.y + max.y) / 2,
+		.z = (min.z + max.z) / 2,
+	};
+
 	vertices_it = model->vertices;
 	for (GLuint i = 0; i < model->vertex_count; i++) {
-		vertices_it->x -= mean.x;
-		vertices_it->y -= mean.y;
-		vertices_it->z -= mean.z;
+		vertices_it->x -= center.x;
+		vertices_it->y -= center.y;
+		vertices_it->z -= center.z;
 		vertices_it++;
 	}
 }

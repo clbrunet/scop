@@ -1,3 +1,4 @@
+#include "scop/vectors/vec3.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -31,6 +32,7 @@ static void initialize_variables(app_t *app)
 
 	app->is_entering_free_flight = false;
 	app->should_model_rotate = true;
+	app->should_use_orthographic = false;
 }
 
 static int initialize_glfw_create_window(app_t *app)
@@ -138,6 +140,39 @@ static int initialize_gl(app_t *app)
 	return 0;
 }
 
+static void initialize_model_cubic_bounding_box(app_t *app, const model_t *model)
+{
+	GLfloat min = 0;
+	GLfloat max = 0;
+
+	vec3_t *vertices_it = model->vertices;
+	for (GLuint i = 0; i < model->vertex_count; i++) {
+		if (vertices_it->x < min) {
+			min = vertices_it->x;
+		}
+		if (vertices_it->y < min) {
+			min = vertices_it->y;
+		}
+		if (vertices_it->z < min) {
+			min = vertices_it->z;
+		}
+
+		if (max < vertices_it->x) {
+			max = vertices_it->x;
+		}
+		if (max < vertices_it->y) {
+			max = vertices_it->y;
+		}
+		if (max < vertices_it->z) {
+			max = vertices_it->z;
+		}
+		vertices_it++;
+	}
+
+	app->model_cubic_bounding_box.min = min;
+	app->model_cubic_bounding_box.max = max;
+}
+
 int initialization(app_t *app, const char *object_path)
 {
 	initialize_variables(app);
@@ -156,6 +191,7 @@ int initialization(app_t *app, const char *object_path)
 		return -1;
 	}
 	app->triangle_count = model.triangle_count;
+	initialize_model_cubic_bounding_box(app, &model);
 	glGenVertexArrays(1, &app->vertex_array);
 	assert(glGetError() == GL_NO_ERROR);
 	glGenBuffers(1, &app->vertex_buffer);

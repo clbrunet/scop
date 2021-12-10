@@ -29,6 +29,12 @@ typedef struct uniforms_s
 	GLuint color;
 }	uniforms_t;
 
+typedef struct cubic_bounding_box_s
+{
+	GLfloat min;
+	GLfloat max;
+}	cubic_bounding_box_t;
+
 typedef struct app_s
 {
 	GLFWwindow *window;
@@ -46,6 +52,8 @@ typedef struct app_s
 	bool is_entering_free_flight;
 	vec2_double_t cursor_last_pos;
 	bool should_model_rotate;
+	cubic_bounding_box_t model_cubic_bounding_box;
+	bool should_use_orthographic;
 }	app_t;
 
 #endif
