@@ -6,6 +6,17 @@
 
 typedef GLuint triangle_t[3];
 
+typedef struct vertex_s
+{
+	vec3_t position;
+}	vertex_t;
+
+typedef struct array_buffer_data_s
+{
+	GLuint vertex_count;
+	vertex_t *vertices;
+}	array_buffer_data_t;
+
 typedef struct model_s
 {
 	GLuint vertex_count;

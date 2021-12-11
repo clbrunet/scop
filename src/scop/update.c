@@ -148,8 +148,7 @@ void update(app_t *app)
 	for (GLsizei i = 0; i < app->triangle_count; i++) {
 		glUniform4f(app->uniforms.color, white, white, white, 1);
 		assert(glGetError() == GL_NO_ERROR);
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT,
-				(const GLvoid *)(i * 3 * sizeof(GLuint)));
+		glDrawArrays(GL_TRIANGLES, i * 3, 3);
 		assert(glGetError() == GL_NO_ERROR);
 
 		white += white_shift;

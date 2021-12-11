@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <err.h>
 
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
@@ -173,6 +174,28 @@ static void initialize_model_cubic_bounding_box(app_t *app, const model_t *model
 	app->model_cubic_bounding_box.max = max;
 }
 
+static int initialize_array_buffer_data(array_buffer_data_t *array_buffer_data,
+		const model_t *model)
+{
+	array_buffer_data->vertex_count = model->triangle_count * 3;
+	array_buffer_data->vertices = malloc(array_buffer_data->vertex_count * sizeof(vertex_t));
+	if (array_buffer_data->vertices == NULL) {
+		err(1, "malloc");
+		return -1;
+	}
+	vertex_t *vertex_it = array_buffer_data->vertices;
+	triangle_t *triangle_it = model->triangles;
+	for (GLuint i = 0; i < model->triangle_count; i++) {
+		vertex_it[0].position = model->vertices[(*triangle_it)[0]];
+		vertex_it[1].position = model->vertices[(*triangle_it)[1]];
+		vertex_it[2].position = model->vertices[(*triangle_it)[2]];
+		vertex_it += 3;
+		triangle_it++;
+	}
+	return 0;
+}
+
+
 int initialization(app_t *app, const char *object_path)
 {
 	initialize_variables(app);
@@ -192,11 +215,20 @@ int initialization(app_t *app, const char *object_path)
 	}
 	app->triangle_count = model.triangle_count;
 	initialize_model_cubic_bounding_box(app, &model);
+	array_buffer_data_t array_buffer_data;
+	if (initialize_array_buffer_data(&array_buffer_data, &model) == -1) {
+		free(model.vertices);
+		free(model.triangles);
+		glDeleteProgram(app->program);
+		glfwTerminate();
+		return -1;
+	}
+	free(model.vertices);
+	free(model.triangles);
+
 	glGenVertexArrays(1, &app->vertex_array);
 	assert(glGetError() == GL_NO_ERROR);
 	glGenBuffers(1, &app->vertex_buffer);
-	assert(glGetError() == GL_NO_ERROR);
-	glGenBuffers(1, &app->element_buffer);
 	assert(glGetError() == GL_NO_ERROR);
 
 	glBindVertexArray(app->vertex_array);
@@ -204,19 +236,9 @@ int initialization(app_t *app, const char *object_path)
 
 	glBindBuffer(GL_ARRAY_BUFFER, app->vertex_buffer);
 	assert(glGetError() == GL_NO_ERROR);
-	glBufferData(GL_ARRAY_BUFFER, model.vertex_count * sizeof(vec3_t), model.vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, array_buffer_data.vertex_count * sizeof(vertex_t),
+			array_buffer_data.vertices, GL_STATIC_DRAW);
 	GLenum error = glGetError();
-	if (error == GL_OUT_OF_MEMORY) {
-		fprintf(stderr, "glBufferData out of memory error\n");
-		destruction(app);
-		return -1;
-	}
-	assert(error == GL_NO_ERROR);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, app->element_buffer);
-	assert(glGetError() == GL_NO_ERROR);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, model.triangle_count * sizeof(triangle_t), model.triangles, GL_STATIC_DRAW);
-	error = glGetError();
 	if (error == GL_OUT_OF_MEMORY) {
 		fprintf(stderr, "glBufferData out of memory error\n");
 		destruction(app);
@@ -229,8 +251,7 @@ int initialization(app_t *app, const char *object_path)
 	glEnableVertexAttribArray(0);
 	assert(glGetError() == GL_NO_ERROR);
 
-	free(model.vertices);
-	free(model.triangles);
+	free(array_buffer_data.vertices);
 
 	// @todo textures
 	// @todo errors management

@@ -43,7 +43,6 @@ typedef struct app_s
 	GLuint program;
 	GLuint vertex_array;
 	GLuint vertex_buffer;
-	GLuint element_buffer;
 	GLsizei triangle_count;
 	uniforms_t uniforms;
 	update_time_t time;

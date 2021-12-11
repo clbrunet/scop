@@ -6,7 +6,7 @@ LIBGLAD := ext/glad/libglad.a
 CC := clang
 CFLAGS := -Wall -Wextra -Werror
 CFLAGS += -I./src/ -I./ext/glad/include/ -I./ext/glfw-3.3.5/include/
-CFLAGS += -Wno-unused-function -g3
+CFLAGS += -Wno-unused-parameter -Wno-unused-function -g3
 CFLAGS += -fsanitize=address
 LDFLAGS := -L./ext/glfw-3.3.5/build/src/ -L./ext/glad/
 UNAME_S := $(shell uname -s)
