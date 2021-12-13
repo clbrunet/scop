@@ -9,6 +9,7 @@ typedef GLuint triangle_t[3];
 typedef struct vertex_s
 {
 	vec3_t position;
+	vec3_t color;
 }	vertex_t;
 
 typedef struct array_buffer_data_s

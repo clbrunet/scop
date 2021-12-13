@@ -14,7 +14,7 @@ vec4_t vec2_to_vec4(const vec2_t *vec2)
 		.x = vec2->x,
 		.y = vec2->y,
 		.z = 0,
-		.w = 0,
+		.w = 1,
 	};
 	return vec4;
 }

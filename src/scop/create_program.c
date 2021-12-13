@@ -41,6 +41,7 @@ static GLuint create_shader(GLenum shader_type, const char *path)
 		glGetShaderInfoLog(shader, info_log_length, NULL, info_log);
 		assert(glGetError() == GL_NO_ERROR);
 		fprintf(stderr, "Shader '%s' compilation error\n%s", path, info_log);
+		free(info_log);
 		return 0;
 	}
 	return shader;
@@ -64,6 +65,7 @@ static int link_program(GLuint program)
 		glGetProgramInfoLog(program, info_log_length, NULL, info_log);
 		assert(glGetError() == GL_NO_ERROR);
 		fprintf(stderr, "Program link error\n%s", info_log);
+		free(info_log);
 		return -1;
 	}
 	return 0;

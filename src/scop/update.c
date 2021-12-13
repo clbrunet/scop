@@ -15,7 +15,7 @@
 #include "scop/vectors/vec4.h"
 #include "scop/utils/math.h"
 
-void process_inputs_movements(app_t *app)
+static void process_inputs_movements(app_t *app)
 {
 	if (glfwGetMouseButton(app->window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE) {
 		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
@@ -69,12 +69,12 @@ void process_inputs_movements(app_t *app)
 	app->camera.position = vec3_addition(&app->camera.position, &movement);
 }
 
-void process_inputs(app_t *app)
+static void process_inputs(app_t *app)
 {
 	process_inputs_movements(app);
 }
 
-void set_model_mat4(app_t *app, mat4_t model_mat4)
+static void set_model_mat4(app_t *app, mat4_t model_mat4)
 {
 	if (app->should_model_rotate == false) {
 		set_identity_mat4(model_mat4);
@@ -83,7 +83,7 @@ void set_model_mat4(app_t *app, mat4_t model_mat4)
 	set_yaw_mat4(model_mat4, radians(app->time.current * 30));
 }
 
-void set_view_mat4(app_t *app, mat4_t view_mat4)
+static void set_view_mat4(app_t *app, mat4_t view_mat4)
 {
 	mat4_t translation_mat4 = {
 		{ 1, 0, 0, -app->camera.position.x },
@@ -102,7 +102,7 @@ void set_view_mat4(app_t *app, mat4_t view_mat4)
 	mat4_multiplication(rotation_mat4, translation_mat4, view_mat4);
 }
 
-void set_projection_view_model_mat4(app_t *app, mat4_t projection_view_model_mat4)
+static void set_projection_view_model_mat4(app_t *app, mat4_t projection_view_model_mat4)
 {
 	mat4_t model_mat4;
 	set_model_mat4(app, model_mat4);
@@ -143,18 +143,6 @@ void update(app_t *app)
 			(const GLfloat *)projection_view_model_mat4);
 	assert(glGetError() == GL_NO_ERROR);
 
-	GLfloat white = 1;
-	GLfloat white_shift = -0.04;
-	for (GLsizei i = 0; i < app->triangle_count; i++) {
-		glUniform4f(app->uniforms.color, white, white, white, 1);
-		assert(glGetError() == GL_NO_ERROR);
-		glDrawArrays(GL_TRIANGLES, i * 3, 3);
-		assert(glGetError() == GL_NO_ERROR);
-
-		white += white_shift;
-		if (white < 0.3 || 1 < white) {
-			white_shift = -white_shift;
-			white += white_shift;
-		}
-	}
+	glDrawArrays(GL_TRIANGLES, 0, app->triangle_count * 3);
+	assert(glGetError() == GL_NO_ERROR);
 }

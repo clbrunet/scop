@@ -4,6 +4,15 @@
 #include "scop/vectors/vec3.h"
 #include "scop/vectors/vec4.h"
 
+vec3_t vec3(GLfloat x, GLfloat y, GLfloat z)
+{
+	return (vec3_t){
+		.x = x,
+		.y = y,
+		.z = z,
+	};
+}
+
 void print_vec3(const vec3_t *vec3)
 {
 	printf("x: %f\n", vec3->x);
@@ -17,7 +26,7 @@ vec4_t vec3_to_vec4(const vec3_t *vec3)
 		.x = vec3->x,
 		.y = vec3->y,
 		.z = vec3->z,
-		.w = 0,
+		.w = 1,
 	};
 	return vec4;
 }

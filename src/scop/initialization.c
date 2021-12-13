@@ -1,4 +1,5 @@
 #include "scop/vectors/vec3.h"
+#include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -121,6 +122,8 @@ static int initialize_gl(app_t *app)
 	assert(glGetError() == GL_NO_ERROR);
 	glEnable(GL_DEPTH_TEST);
 	assert(glGetError() == GL_NO_ERROR);
+	glPointSize(2);
+	assert(glGetError() == GL_NO_ERROR);
 
 	app->program = create_program("./shaders/main.vert", "./shaders/main.frag");
 	if (app->program == 0) {
@@ -183,14 +186,27 @@ static int initialize_array_buffer_data(array_buffer_data_t *array_buffer_data,
 		err(1, "malloc");
 		return -1;
 	}
+
+	GLfloat whiteness = 1;
+	GLfloat whiteness_shift = -0.04;
 	vertex_t *vertex_it = array_buffer_data->vertices;
 	triangle_t *triangle_it = model->triangles;
 	for (GLuint i = 0; i < model->triangle_count; i++) {
+		vec3_t color = vec3(whiteness, whiteness, whiteness);
 		vertex_it[0].position = model->vertices[(*triangle_it)[0]];
+		vertex_it[0].color = color;
 		vertex_it[1].position = model->vertices[(*triangle_it)[1]];
+		vertex_it[1].color = color;
 		vertex_it[2].position = model->vertices[(*triangle_it)[2]];
+		vertex_it[2].color = color;
+
 		vertex_it += 3;
 		triangle_it++;
+		whiteness += whiteness_shift;
+		if (whiteness < 0.3 || 1 < whiteness) {
+			whiteness_shift = -whiteness_shift;
+			whiteness += whiteness_shift;
+		}
 	}
 	return 0;
 }
@@ -246,9 +262,13 @@ int initialization(app_t *app, const char *object_path)
 	}
 	assert(error == GL_NO_ERROR);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (const GLvoid *)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (const GLvoid *)offsetof(vertex_t, position));
 	assert(glGetError() == GL_NO_ERROR);
 	glEnableVertexAttribArray(0);
+	assert(glGetError() == GL_NO_ERROR);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (const GLvoid *)offsetof(vertex_t, color));
+	assert(glGetError() == GL_NO_ERROR);
+	glEnableVertexAttribArray(1);
 	assert(glGetError() == GL_NO_ERROR);
 
 	free(array_buffer_data.vertices);

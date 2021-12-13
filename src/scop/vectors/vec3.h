@@ -11,6 +11,8 @@ typedef struct vec3_s {
 	GLfloat z;
 }	vec3_t;
 
+vec3_t vec3(GLfloat x, GLfloat y, GLfloat z);
+
 void print_vec3(const vec3_t *vec3);
 
 vec4_t vec3_to_vec4(const vec3_t *vec3);
