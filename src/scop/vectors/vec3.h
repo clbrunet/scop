@@ -18,6 +18,7 @@ void print_vec3(const vec3_t *vec3);
 vec4_t vec3_to_vec4(const vec3_t *vec3);
 
 vec3_t vec3_addition(const vec3_t *lhs, const vec3_t *rhs);
+vec3_t vec3_substraction(const vec3_t *lhs, const vec3_t *rhs);
 
 GLfloat vec3_magnitude(const vec3_t *vec3);
 void vec3_normalize(vec3_t *vec3);

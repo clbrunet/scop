@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <err.h>
 
+#include "scop/app.h"
 #include "scop/initialization.h"
 #include "scop/load_obj.h"
 #include "scop/utils/file.h"
@@ -58,6 +59,9 @@ static int count_model_datas(model_t *model, char **lines)
 			}
 		}
 		lines++;
+	}
+	if (model->triangle_count == 0) {
+		return -1;
 	}
 	return 0;
 }
@@ -173,48 +177,75 @@ static int fill_model_datas(model_t *model, char **lines)
 	return 0;
 }
 
-static void  center_model(model_t *model)
+static void  set_bounding_box_axes(model_t *model)
 {
-	vec3_t min = {};
-	vec3_t max = {};
-	vec3_t *vertices_it;
+	model->bounding_box = (bounding_box_t){
+		.x.min = model->vertices->x, .x.max = model->vertices->x,
+		.y.min = model->vertices->y, .y.max = model->vertices->y,
+		.z.min = model->vertices->z, .z.max = model->vertices->z,
+	};
 
-	vertices_it = model->vertices;
-	for (GLuint i = 0; i < model->vertex_count; i++) {
-		if (vertices_it->x < min.x) {
-			min.x = vertices_it->x;
+	vec3_t *vertices_it = model->vertices + 1;
+	for (GLuint i = 1; i < model->vertex_count; i++) {
+		if (vertices_it->x < model->bounding_box.x.min) {
+			model->bounding_box.x.min = vertices_it->x;
 		}
-		if (vertices_it->y < min.y) {
-			min.y = vertices_it->y;
+		if (model->bounding_box.x.max < vertices_it->y) {
+			model->bounding_box.x.max = vertices_it->x;
 		}
-		if (vertices_it->z < min.z) {
-			min.z = vertices_it->z;
+		if (vertices_it->y < model->bounding_box.y.min) {
+			model->bounding_box.y.min = vertices_it->y;
 		}
-
-		if (max.x < vertices_it->x) {
-			max.x = vertices_it->x;
+		if (model->bounding_box.y.max < vertices_it->y) {
+			model->bounding_box.y.max = vertices_it->y;
 		}
-		if (max.y < vertices_it->y) {
-			max.y = vertices_it->y;
+		if (vertices_it->z < model->bounding_box.z.min) {
+			model->bounding_box.z.min = vertices_it->z;
 		}
-		if (max.z < vertices_it->z) {
-			max.z = vertices_it->z;
+		if (model->bounding_box.z.max < vertices_it->z) {
+			model->bounding_box.z.max = vertices_it->z;
 		}
 		vertices_it++;
 	}
+}
+
+static void  center_bounding_box(model_t *model)
+{
+	set_bounding_box_axes(model);
 
 	vec3_t center = {
-		.x = (min.x + max.x) / 2,
-		.y = (min.y + max.y) / 2,
-		.z = (min.z + max.z) / 2,
+		.x = (model->bounding_box.x.min + model->bounding_box.x.max) / 2,
+		.y = (model->bounding_box.y.min + model->bounding_box.y.max) / 2,
+		.z = (model->bounding_box.z.min + model->bounding_box.z.max) / 2,
 	};
 
-	vertices_it = model->vertices;
+	vec3_t *vertices_it = model->vertices;
 	for (GLuint i = 0; i < model->vertex_count; i++) {
 		vertices_it->x -= center.x;
 		vertices_it->y -= center.y;
 		vertices_it->z -= center.z;
 		vertices_it++;
+	}
+
+	model->bounding_box.x.min -= center.x;
+	model->bounding_box.x.max -= center.x;
+	model->bounding_box.y.min -= center.y;
+	model->bounding_box.y.max -= center.y;
+	model->bounding_box.z.min -= center.z;
+	model->bounding_box.z.max -= center.z;
+
+	if (model->bounding_box.x.max > model->bounding_box.y.max) {
+		if (model->bounding_box.x.max > model->bounding_box.z.max) {
+			model->bounding_box.max_distance = model->bounding_box.x.max;
+		} else {
+			model->bounding_box.max_distance = model->bounding_box.z.max;
+		}
+	} else {
+		if (model->bounding_box.y.max > model->bounding_box.z.max) {
+			model->bounding_box.max_distance = model->bounding_box.y.max;
+		} else {
+			model->bounding_box.max_distance = model->bounding_box.z.max;
+		}
 	}
 }
 
@@ -253,6 +284,6 @@ int load_obj(model_t *model, const char *path)
 	}
 	free_strs(lines);
 
-	center_model(model);
+	center_bounding_box(model);
 	return 0;
 }

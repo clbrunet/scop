@@ -10,6 +10,7 @@ typedef struct vertex_s
 {
 	vec3_t position;
 	vec3_t color;
+	vec2_t texture_coordinates;
 }	vertex_t;
 
 typedef struct array_buffer_data_s
@@ -24,6 +25,7 @@ typedef struct model_s
 	vec3_t *vertices;
 	GLuint triangle_count;
 	triangle_t *triangles;
+	bounding_box_t bounding_box;
 }	model_t;
 
 int initialization(app_t *app, const char *object_path);

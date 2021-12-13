@@ -114,10 +114,10 @@ static void set_projection_view_model_mat4(app_t *app, mat4_t projection_view_mo
 	GLfloat aspect_ratio = (GLfloat)app->window_width / (GLfloat)app->window_height;
 	if (app->should_use_orthographic == true) {
 		set_orthographic_projection_mat4(projection_mat4,
-				app->model_cubic_bounding_box.min * aspect_ratio,
-				app->model_cubic_bounding_box.max * aspect_ratio,
-				app->model_cubic_bounding_box.min,
-				app->model_cubic_bounding_box.max, 0.1, 1000);
+				-app->model_bounding_box.max_distance * aspect_ratio * 1.1,
+				app->model_bounding_box.max_distance * aspect_ratio * 1.1,
+				-app->model_bounding_box.max_distance * 1.1,
+				app->model_bounding_box.max_distance * 1.1, 0.1, 1000);
 	} else {
 		set_perspective_projection_mat4(projection_mat4, radians(app->fov),
 				aspect_ratio, 0.1, 1000);

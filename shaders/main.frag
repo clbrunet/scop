@@ -1,10 +1,14 @@
 #version 400 core
 
 in vec4 v_color;
+in vec2 v_texture_coordinates;
+
+uniform sampler2D sampler;
 
 out vec4 out_color;
 
 void main()
 {
-  out_color = v_color;
+  // out_color = v_color;
+  out_color = texture(sampler, v_texture_coordinates);
 }

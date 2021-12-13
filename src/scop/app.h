@@ -25,15 +25,22 @@ typedef struct update_time_s
 
 typedef struct uniforms_s
 {
-	GLuint projection_view_model;
-	GLuint color;
+	GLint projection_view_model;
 }	uniforms_t;
 
-typedef struct cubic_bounding_box_s
+typedef struct range_s
 {
 	GLfloat min;
 	GLfloat max;
-}	cubic_bounding_box_t;
+}	range_t;
+
+typedef struct bounding_box_s
+{
+	range_t x;
+	range_t y;
+	range_t z;
+	GLfloat max_distance;
+}	bounding_box_t;
 
 typedef struct app_s
 {
@@ -43,15 +50,16 @@ typedef struct app_s
 	GLuint program;
 	GLuint vertex_array;
 	GLuint vertex_buffer;
+	GLuint texture_map;
 	GLsizei triangle_count;
 	uniforms_t uniforms;
 	update_time_t time;
 	GLfloat fov;
 	camera_t camera;
+	bounding_box_t model_bounding_box;
 	bool is_entering_free_flight;
 	vec2_double_t cursor_last_pos;
 	bool should_model_rotate;
-	cubic_bounding_box_t model_cubic_bounding_box;
 	bool should_use_orthographic;
 }	app_t;
 

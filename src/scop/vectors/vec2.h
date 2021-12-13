@@ -5,9 +5,17 @@
 
 typedef struct vec4_s vec4_t;
 
-typedef struct vec2_s {
-	GLfloat x;
-	GLfloat y;
+typedef struct vec2_s
+{
+	union {
+		struct {
+			GLfloat x, y;
+		};
+		struct {
+			GLfloat u, v;
+		};
+		GLfloat array[2];
+	};
 }	vec2_t;
 
 void print_vec2(const vec2_t *vec2);

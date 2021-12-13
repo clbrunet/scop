@@ -22,23 +22,30 @@ void print_vec3(const vec3_t *vec3)
 
 vec4_t vec3_to_vec4(const vec3_t *vec3)
 {
-	vec4_t vec4 = {
+	return (vec4_t){
 		.x = vec3->x,
 		.y = vec3->y,
 		.z = vec3->z,
 		.w = 1,
 	};
-	return vec4;
 }
 
 vec3_t vec3_addition(const vec3_t *lhs, const vec3_t *rhs)
 {
-	vec3_t result = {
+	return (vec3_t){
 		.x = lhs->x + rhs->x,
 		.y = lhs->y + rhs->y,
 		.z = lhs->z + rhs->z,
 	};
-	return result;
+}
+
+vec3_t vec3_substraction(const vec3_t *lhs, const vec3_t *rhs)
+{
+	return (vec3_t){
+		.x = lhs->x - rhs->x,
+		.y = lhs->y - rhs->y,
+		.z = lhs->z - rhs->z,
+	};
 }
 
 GLfloat vec3_magnitude(const vec3_t *vec3)

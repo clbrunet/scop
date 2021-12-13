@@ -1,6 +1,6 @@
-#include "scop/vectors/vec3.h"
 #include <stddef.h>
 #include <stdio.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -17,6 +17,7 @@
 #include "scop/load_obj.h"
 #include "scop/load_tga.h"
 #include "scop/destruction.h"
+#include "scop/utils/math.h"
 
 static void initialize_variables(app_t *app)
 {
@@ -140,45 +141,12 @@ static int initialize_gl(app_t *app)
 	assert(error == GL_NO_ERROR);
 
 	app->uniforms.projection_view_model = glGetUniformLocation(app->program, "projection_view_model");
-	assert(app->uniforms.projection_view_model != (GLuint)-1);
+	assert(app->uniforms.projection_view_model != -1);
 	return 0;
 }
 
-static void initialize_model_cubic_bounding_box(app_t *app, const model_t *model)
-{
-	GLfloat min = 0;
-	GLfloat max = 0;
-
-	vec3_t *vertices_it = model->vertices;
-	for (GLuint i = 0; i < model->vertex_count; i++) {
-		if (vertices_it->x < min) {
-			min = vertices_it->x;
-		}
-		if (vertices_it->y < min) {
-			min = vertices_it->y;
-		}
-		if (vertices_it->z < min) {
-			min = vertices_it->z;
-		}
-
-		if (max < vertices_it->x) {
-			max = vertices_it->x;
-		}
-		if (max < vertices_it->y) {
-			max = vertices_it->y;
-		}
-		if (max < vertices_it->z) {
-			max = vertices_it->z;
-		}
-		vertices_it++;
-	}
-
-	app->model_cubic_bounding_box.min = min;
-	app->model_cubic_bounding_box.max = max;
-}
-
 static int initialize_array_buffer_data(array_buffer_data_t *array_buffer_data,
-		const model_t *model)
+		const model_t *model, GLfloat texture_aspect_ratio)
 {
 	array_buffer_data->vertex_count = model->triangle_count * 3;
 	array_buffer_data->vertices = malloc(array_buffer_data->vertex_count * sizeof(vertex_t));
@@ -193,12 +161,21 @@ static int initialize_array_buffer_data(array_buffer_data_t *array_buffer_data,
 	triangle_t *triangle_it = model->triangles;
 	for (GLuint i = 0; i < model->triangle_count; i++) {
 		vec3_t color = vec3(whiteness, whiteness, whiteness);
+		vec3_t normal = get_triangle_normal(&model->vertices[(*triangle_it)[0]],
+				&model->vertices[(*triangle_it)[1]],
+				&model->vertices[(*triangle_it)[2]]);
 		vertex_it[0].position = model->vertices[(*triangle_it)[0]];
 		vertex_it[0].color = color;
+		vertex_it[0].texture_coordinates = get_texture_coordinates(
+				&vertex_it[0].position, &normal, &model->bounding_box, texture_aspect_ratio);
 		vertex_it[1].position = model->vertices[(*triangle_it)[1]];
 		vertex_it[1].color = color;
+		vertex_it[1].texture_coordinates = get_texture_coordinates(
+				&vertex_it[1].position, &normal, &model->bounding_box, texture_aspect_ratio);
 		vertex_it[2].position = model->vertices[(*triangle_it)[2]];
 		vertex_it[2].color = color;
+		vertex_it[2].texture_coordinates = get_texture_coordinates(
+				&vertex_it[2].position, &normal, &model->bounding_box, texture_aspect_ratio);
 
 		vertex_it += 3;
 		triangle_it++;
@@ -210,7 +187,6 @@ static int initialize_array_buffer_data(array_buffer_data_t *array_buffer_data,
 	}
 	return 0;
 }
-
 
 int initialization(app_t *app, const char *object_path)
 {
@@ -230,11 +206,22 @@ int initialization(app_t *app, const char *object_path)
 		return -1;
 	}
 	app->triangle_count = model.triangle_count;
-	initialize_model_cubic_bounding_box(app, &model);
+	app->model_bounding_box = model.bounding_box;
+	int texture_width;
+	int texture_height;
+	int texture_channel_count;
+	u_char *texture_data = load_tga("/sgoinfre/goinfre/Perso/clbrunet/Dev/42_scop/textures/large.tga",
+			&texture_width, &texture_height, &texture_channel_count);
+	if (texture_data == NULL) {
+		destruction(app);
+		return -1;
+	}
 	array_buffer_data_t array_buffer_data;
-	if (initialize_array_buffer_data(&array_buffer_data, &model) == -1) {
+	if (initialize_array_buffer_data(&array_buffer_data, &model,
+			(GLfloat)texture_width / (GLfloat)texture_height) == -1) {
 		free(model.vertices);
 		free(model.triangles);
+		free(texture_data);
 		glDeleteProgram(app->program);
 		glfwTerminate();
 		return -1;
@@ -245,6 +232,8 @@ int initialization(app_t *app, const char *object_path)
 	glGenVertexArrays(1, &app->vertex_array);
 	assert(glGetError() == GL_NO_ERROR);
 	glGenBuffers(1, &app->vertex_buffer);
+	assert(glGetError() == GL_NO_ERROR);
+	glGenTextures(1, &app->texture_map);
 	assert(glGetError() == GL_NO_ERROR);
 
 	glBindVertexArray(app->vertex_array);
@@ -261,37 +250,41 @@ int initialization(app_t *app, const char *object_path)
 		return -1;
 	}
 	assert(error == GL_NO_ERROR);
+	free(array_buffer_data.vertices);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (const GLvoid *)offsetof(vertex_t, position));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t),
+			(const GLvoid *)offsetof(vertex_t, position));
 	assert(glGetError() == GL_NO_ERROR);
 	glEnableVertexAttribArray(0);
 	assert(glGetError() == GL_NO_ERROR);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (const GLvoid *)offsetof(vertex_t, color));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t),
+			(const GLvoid *)offsetof(vertex_t, color));
 	assert(glGetError() == GL_NO_ERROR);
 	glEnableVertexAttribArray(1);
 	assert(glGetError() == GL_NO_ERROR);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex_t),
+			(const GLvoid *)offsetof(vertex_t, texture_coordinates));
+	assert(glGetError() == GL_NO_ERROR);
+	glEnableVertexAttribArray(2);
+	assert(glGetError() == GL_NO_ERROR);
 
-	free(array_buffer_data.vertices);
-
-	// @todo textures
-	// @todo errors management
-	// glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
-	// 		(3 + 2) * sizeof(GLfloat), (const GLvoid *)(3 * sizeof(GLfloat)));
-	// glEnableVertexAttribArray(1);
-
-	// int width;
-	// int height;
-	// int channel_count;
-	// unsigned char *data = tga_load("./textures/blue.tga", &width, &height, &channel_count);
-	// if (data == NULL) {
-	// 	glfwTerminate();
-	// 	return 1;
-	// }
-	// unsigned int texture;
-	// glGenTextures(1, &texture);
-	// glBindTexture(GL_TEXTURE_2D, texture);
-	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
-	// glGenerateMipmap(GL_TEXTURE_2D);
-	// free(data);
+	glActiveTexture(GL_TEXTURE0);
+	assert(glGetError() == GL_NO_ERROR);
+	glBindTexture(GL_TEXTURE_2D, app->texture_map);
+	assert(glGetError() == GL_NO_ERROR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	assert(glGetError() == GL_NO_ERROR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	assert(glGetError() == GL_NO_ERROR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_BGR,
+			GL_UNSIGNED_BYTE, texture_data);
+	assert(glGetError() == GL_NO_ERROR);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	assert(glGetError() == GL_NO_ERROR);
+	GLint sampler_uniform = glGetUniformLocation(app->program, "sampler");
+	assert(sampler_uniform != -1);
+	glUniform1i(sampler_uniform, 0);
+	assert(glGetError() == GL_NO_ERROR);
+	free(texture_data);
 	return 0;
 }

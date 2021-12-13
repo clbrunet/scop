@@ -4,6 +4,16 @@
 #include "scop/vectors/vec3.h"
 #include "scop/matrices/mat4x1.h"
 
+vec4_t vec4(GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+{
+	return (vec4_t){
+		.x = x,
+		.y = y,
+		.z = z,
+		.w = w,
+	};
+}
+
 void print_vec4(const vec4_t *vec4)
 {
 	printf("x: %f\n", vec4->x);
