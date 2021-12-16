@@ -1,6 +1,8 @@
 #ifndef SCOP_INITIALIZATION_H
 #define SCOP_INITIALIZATION_H
 
+#include <sys/types.h>
+
 #include "scop/app.h"
 #include "scop/vectors/vec3.h"
 
@@ -18,6 +20,14 @@ typedef struct array_buffer_data_s
 	GLuint vertex_count;
 	vertex_t *vertices;
 }	array_buffer_data_t;
+
+typedef struct texture_s
+{
+	int width;
+	int height;
+	int channel_count;
+	u_char *data;
+}	texture_t;
 
 typedef struct model_s
 {

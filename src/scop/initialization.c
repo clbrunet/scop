@@ -188,6 +188,69 @@ static int initialize_array_buffer_data(array_buffer_data_t *array_buffer_data,
 	return 0;
 }
 
+static int initialize_array_buffer(const app_t *app, const array_buffer_data_t *array_buffer_data)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, app->vertex_buffer);
+	assert(glGetError() == GL_NO_ERROR);
+	glBufferData(GL_ARRAY_BUFFER, array_buffer_data->vertex_count * sizeof(vertex_t),
+			array_buffer_data->vertices, GL_STATIC_DRAW);
+	GLenum error = glGetError();
+	if (error == GL_OUT_OF_MEMORY) {
+		fprintf(stderr, "glBufferData out of memory error\n");
+		return -1;
+	}
+	assert(error == GL_NO_ERROR);
+	return 0;
+}
+
+static void initialize_vertex_array()
+{
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t),
+			(const GLvoid *)offsetof(vertex_t, position));
+	assert(glGetError() == GL_NO_ERROR);
+	glEnableVertexAttribArray(0);
+	assert(glGetError() == GL_NO_ERROR);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t),
+			(const GLvoid *)offsetof(vertex_t, color));
+	assert(glGetError() == GL_NO_ERROR);
+	glEnableVertexAttribArray(1);
+	assert(glGetError() == GL_NO_ERROR);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex_t),
+			(const GLvoid *)offsetof(vertex_t, texture_coordinates));
+	assert(glGetError() == GL_NO_ERROR);
+	glEnableVertexAttribArray(2);
+	assert(glGetError() == GL_NO_ERROR);
+}
+
+static int initialize_texture_map(const app_t *app, const texture_t *texture)
+{
+	glActiveTexture(GL_TEXTURE0);
+	assert(glGetError() == GL_NO_ERROR);
+	glBindTexture(GL_TEXTURE_2D, app->texture_map);
+	assert(glGetError() == GL_NO_ERROR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+	assert(glGetError() == GL_NO_ERROR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	assert(glGetError() == GL_NO_ERROR);
+	if (texture->channel_count == 3) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture->width, texture->height, 0, GL_BGR,
+				GL_UNSIGNED_BYTE, texture->data);
+	} else if (texture->channel_count == 4) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_BGRA,
+				GL_UNSIGNED_BYTE, texture->data);
+	} else {
+		assert(false);
+	}
+	assert(glGetError() == GL_NO_ERROR);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	assert(glGetError() == GL_NO_ERROR);
+	GLint sampler_uniform = glGetUniformLocation(app->program, "sampler");
+	assert(sampler_uniform != -1);
+	glUniform1i(sampler_uniform, 0);
+	assert(glGetError() == GL_NO_ERROR);
+	return 0;
+}
+
 int initialization(app_t *app, const char *object_path)
 {
 	initialize_variables(app);
@@ -207,21 +270,22 @@ int initialization(app_t *app, const char *object_path)
 	}
 	app->triangle_count = model.triangle_count;
 	app->model_bounding_box = model.bounding_box;
-	int texture_width;
-	int texture_height;
-	int texture_channel_count;
-	u_char *texture_data = load_tga("./textures/uv_grid.tga",
-			&texture_width, &texture_height, &texture_channel_count);
-	if (texture_data == NULL) {
-		destruction(app);
+	texture_t texture;
+	texture.data = load_tga("./textures/uv_grid.tga",
+			&texture.width, &texture.height, &texture.channel_count);
+	if (texture.data == NULL) {
+		free(model.vertices);
+		free(model.triangles);
+		glDeleteProgram(app->program);
+		glfwTerminate();
 		return -1;
 	}
 	array_buffer_data_t array_buffer_data;
 	if (initialize_array_buffer_data(&array_buffer_data, &model,
-			(GLfloat)texture_width / (GLfloat)texture_height) == -1) {
+			(GLfloat)texture.width / (GLfloat)texture.height) == -1) {
 		free(model.vertices);
 		free(model.triangles);
-		free(texture_data);
+		free(texture.data);
 		glDeleteProgram(app->program);
 		glfwTerminate();
 		return -1;
@@ -239,59 +303,19 @@ int initialization(app_t *app, const char *object_path)
 	glBindVertexArray(app->vertex_array);
 	assert(glGetError() == GL_NO_ERROR);
 
-	glBindBuffer(GL_ARRAY_BUFFER, app->vertex_buffer);
-	assert(glGetError() == GL_NO_ERROR);
-	glBufferData(GL_ARRAY_BUFFER, array_buffer_data.vertex_count * sizeof(vertex_t),
-			array_buffer_data.vertices, GL_STATIC_DRAW);
-	GLenum error = glGetError();
-	if (error == GL_OUT_OF_MEMORY) {
-		fprintf(stderr, "glBufferData out of memory error\n");
+	if (initialize_array_buffer(app, &array_buffer_data) == -1) {
+		free(array_buffer_data.vertices);
+		free(texture.data);
 		destruction(app);
 		return -1;
 	}
-	assert(error == GL_NO_ERROR);
 	free(array_buffer_data.vertices);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t),
-			(const GLvoid *)offsetof(vertex_t, position));
-	assert(glGetError() == GL_NO_ERROR);
-	glEnableVertexAttribArray(0);
-	assert(glGetError() == GL_NO_ERROR);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t),
-			(const GLvoid *)offsetof(vertex_t, color));
-	assert(glGetError() == GL_NO_ERROR);
-	glEnableVertexAttribArray(1);
-	assert(glGetError() == GL_NO_ERROR);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex_t),
-			(const GLvoid *)offsetof(vertex_t, texture_coordinates));
-	assert(glGetError() == GL_NO_ERROR);
-	glEnableVertexAttribArray(2);
-	assert(glGetError() == GL_NO_ERROR);
-
-	glActiveTexture(GL_TEXTURE0);
-	assert(glGetError() == GL_NO_ERROR);
-	glBindTexture(GL_TEXTURE_2D, app->texture_map);
-	assert(glGetError() == GL_NO_ERROR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-	assert(glGetError() == GL_NO_ERROR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	assert(glGetError() == GL_NO_ERROR);
-	if (texture_channel_count == 3) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_BGR,
-				GL_UNSIGNED_BYTE, texture_data);
-	} else if (texture_channel_count == 4) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_width, texture_height, 0, GL_BGRA,
-				GL_UNSIGNED_BYTE, texture_data);
-	} else {
-		assert(false);
+	initialize_vertex_array();
+	if (initialize_texture_map(app, &texture) == -1) {
+		free(texture.data);
+		destruction(app);
+		return -1;
 	}
-	assert(glGetError() == GL_NO_ERROR);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	assert(glGetError() == GL_NO_ERROR);
-	GLint sampler_uniform = glGetUniformLocation(app->program, "sampler");
-	assert(sampler_uniform != -1);
-	glUniform1i(sampler_uniform, 0);
-	assert(glGetError() == GL_NO_ERROR);
-	free(texture_data);
+	free(texture.data);
 	return 0;
 }
