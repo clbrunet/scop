@@ -210,7 +210,7 @@ int initialization(app_t *app, const char *object_path)
 	int texture_width;
 	int texture_height;
 	int texture_channel_count;
-	u_char *texture_data = load_tga("/sgoinfre/goinfre/Perso/clbrunet/Dev/42_scop/textures/large.tga",
+	u_char *texture_data = load_tga("./textures/uv_grid.tga",
 			&texture_width, &texture_height, &texture_channel_count);
 	if (texture_data == NULL) {
 		destruction(app);
@@ -272,12 +272,19 @@ int initialization(app_t *app, const char *object_path)
 	assert(glGetError() == GL_NO_ERROR);
 	glBindTexture(GL_TEXTURE_2D, app->texture_map);
 	assert(glGetError() == GL_NO_ERROR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 	assert(glGetError() == GL_NO_ERROR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	assert(glGetError() == GL_NO_ERROR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_BGR,
-			GL_UNSIGNED_BYTE, texture_data);
+	if (texture_channel_count == 3) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_BGR,
+				GL_UNSIGNED_BYTE, texture_data);
+	} else if (texture_channel_count == 4) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_width, texture_height, 0, GL_BGRA,
+				GL_UNSIGNED_BYTE, texture_data);
+	} else {
+		assert(false);
+	}
 	assert(glGetError() == GL_NO_ERROR);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	assert(glGetError() == GL_NO_ERROR);
