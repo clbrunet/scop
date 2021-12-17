@@ -9,7 +9,7 @@ CC := clang
 CFLAGS := -Wall -Wextra -Werror
 CFLAGS += -I$(SRC_DIR)/ -I./ext/glad/include/ -I./ext/glfw-3.3.5/include/
 CFLAGS += -Wno-unused-parameter -Wno-unused-function -g3
-# CFLAGS += -fsanitize=address
+CFLAGS += -fsanitize=address
 LDFLAGS := -L./ext/glfw-3.3.5/build/src/ -L./ext/glad/
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
