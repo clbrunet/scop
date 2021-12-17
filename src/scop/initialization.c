@@ -37,6 +37,9 @@ static void initialize_variables(app_t *app)
 	app->is_entering_free_flight = false;
 	app->should_model_rotate = true;
 	app->should_use_orthographic = false;
+
+	app->texture_animation_phase = TO_COLOR;
+	app->texture_portion = 0;
 }
 
 static int initialize_glfw_create_window(app_t *app)
@@ -143,6 +146,8 @@ static int initialize_gl(app_t *app)
 
 	app->uniforms.projection_view_model = glGetUniformLocation(app->program, "projection_view_model");
 	assert(app->uniforms.projection_view_model != -1);
+	app->uniforms.texture_portion = glGetUniformLocation(app->program, "texture_portion");
+	assert(app->uniforms.texture_portion != -1);
 	return 0;
 }
 
@@ -295,7 +300,7 @@ int initialization(app_t *app, const char *object_path)
 	app->triangle_count = model.triangle_count;
 	app->model_bounding_box = model.bounding_box;
 	texture_t texture;
-	texture.data = load_tga("./textures/uv_grid.tga",
+	texture.data = load_tga("./textures/kitten.tga",
 			&texture.width, &texture.height, &texture.channel_count);
 	if (texture.data == NULL) {
 		free(model.vertices);

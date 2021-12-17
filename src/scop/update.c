@@ -74,6 +74,21 @@ static void process_inputs(app_t *app)
 	process_inputs_movements(app);
 }
 
+static void process_animations(app_t *app)
+{
+	if (app->texture_animation_phase == TO_COLOR) {
+		app->texture_portion -= app->time.delta * 0.5;
+		if (app->texture_portion < 0) {
+			app->texture_portion = 0;
+		}
+	} else {
+		app->texture_portion += app->time.delta * 0.5;
+		if (app->texture_portion > 1) {
+			app->texture_portion = 1;
+		}
+	}
+}
+
 static void set_model_mat4(app_t *app, mat4_t model_mat4)
 {
 	if (app->should_model_rotate == false) {
@@ -135,12 +150,15 @@ void update(app_t *app)
 	assert(glGetError() == GL_NO_ERROR);
 
 	process_inputs(app);
+	process_animations(app);
 
 	mat4_t projection_view_model_mat4;
 	set_projection_view_model_mat4(app, projection_view_model_mat4);
 
 	glUniformMatrix4fv(app->uniforms.projection_view_model, 1, GL_TRUE,
 			(const GLfloat *)projection_view_model_mat4);
+	assert(glGetError() == GL_NO_ERROR);
+	glUniform1f(app->uniforms.texture_portion, app->texture_portion);
 	assert(glGetError() == GL_NO_ERROR);
 
 	glDrawArrays(GL_TRIANGLES, 0, app->triangle_count * 3);

@@ -26,6 +26,7 @@ typedef struct update_time_s
 typedef struct uniforms_s
 {
 	GLint projection_view_model;
+	GLint texture_portion;
 }	uniforms_t;
 
 typedef struct range_s
@@ -41,6 +42,12 @@ typedef struct bounding_box_s
 	range_t z;
 	GLfloat max_distance;
 }	bounding_box_t;
+
+typedef enum texture_animation_phase_e
+{
+	TO_COLOR,
+	TO_TEXTURE,
+}	texture_animation_phase_t;
 
 typedef struct app_s
 {
@@ -61,6 +68,8 @@ typedef struct app_s
 	vec2_double_t cursor_last_pos;
 	bool should_model_rotate;
 	bool should_use_orthographic;
+	texture_animation_phase_t texture_animation_phase;
+	GLfloat texture_portion;
 }	app_t;
 
 #endif

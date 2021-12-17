@@ -61,6 +61,14 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 				app->should_use_orthographic = false;
 			}
 		}
+
+		if (key == GLFW_KEY_T) {
+			if (app->texture_animation_phase == TO_COLOR) {
+				app->texture_animation_phase = TO_TEXTURE;
+			} else {
+				app->texture_animation_phase = TO_COLOR;
+			}
+		}
 	}
 }
 
