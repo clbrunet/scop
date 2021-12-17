@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <err.h>
+#include <math.h>
 
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
@@ -143,6 +144,29 @@ static int initialize_gl(app_t *app)
 	app->uniforms.projection_view_model = glGetUniformLocation(app->program, "projection_view_model");
 	assert(app->uniforms.projection_view_model != -1);
 	return 0;
+}
+
+static vec2_t get_texture_coordinates(const vec3_t *position, const vec3_t *normal,
+		const bounding_box_t *model_bounding_box, GLfloat texture_aspect_ratio)
+{
+	vec2_t texture_coordinates = {};
+
+	vec3_t abs_normal = {
+		.x = fabsf(normal->x),
+		.y = fabsf(normal->y),
+		.z = fabsf(normal->z),
+	};
+	if (abs_normal.x > abs_normal.y && abs_normal.x > abs_normal.z) {
+		texture_coordinates.u = (-position->z - model_bounding_box->z.min) / texture_aspect_ratio;
+		texture_coordinates.v = position->y - model_bounding_box->y.min;
+	} else if (abs_normal.y > abs_normal.x && abs_normal.y > abs_normal.z) {
+		texture_coordinates.u = (position->x - model_bounding_box->x.min) / texture_aspect_ratio;
+		texture_coordinates.v = -position->z - model_bounding_box->z.min;
+	} else {
+		texture_coordinates.u = (position->x - model_bounding_box->x.min) / texture_aspect_ratio;
+		texture_coordinates.v = position->y - model_bounding_box->y.min;
+	}
+	return texture_coordinates;
 }
 
 static int initialize_array_buffer_data(array_buffer_data_t *array_buffer_data,

@@ -39,26 +39,3 @@ vec3_t get_triangle_normal(const vec3_t *p1, const vec3_t *p2, const vec3_t *p3)
 	vec3_normalize(&normal);
 	return normal;
 }
-
-vec2_t get_texture_coordinates(const vec3_t *position, const vec3_t *normal,
-		const bounding_box_t *model_bounding_box, GLfloat texture_aspect_ratio)
-{
-	vec2_t texture_coordinates = {};
-
-	vec3_t abs_normal = {
-		.x = fabsf(normal->x),
-		.y = fabsf(normal->y),
-		.z = fabsf(normal->z),
-	};
-	if (abs_normal.x > abs_normal.y && abs_normal.x > abs_normal.z) {
-		texture_coordinates.u = (-position->z - model_bounding_box->z.min) / texture_aspect_ratio;
-		texture_coordinates.v = position->y - model_bounding_box->y.min;
-	} else if (abs_normal.y > abs_normal.x && abs_normal.y > abs_normal.z) {
-		texture_coordinates.u = (position->x - model_bounding_box->x.min) / texture_aspect_ratio;
-		texture_coordinates.v = -position->z - model_bounding_box->z.min;
-	} else {
-		texture_coordinates.u = (position->x - model_bounding_box->x.min) / texture_aspect_ratio;
-		texture_coordinates.v = position->y - model_bounding_box->y.min;
-	}
-	return texture_coordinates;
-}
