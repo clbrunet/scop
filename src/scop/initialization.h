@@ -38,6 +38,6 @@ typedef struct model_s
 	bounding_box_t bounding_box;
 }	model_t;
 
-int initialization(app_t *app, const char *object_path);
+int initialization(app_t *app, const char *object_path, const char *texture_path);
 
 #endif

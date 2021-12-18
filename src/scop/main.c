@@ -16,13 +16,14 @@
 
 int main(int argc, char *argv[])
 {
-	if (argc != 2) {
-		printf("Usage: %s " UNDERLINED "OBJECT" RESET_UNDERLINED "\n", argv[0]);
+	if (argc != 3) {
+		printf("Usage: %s " UNDERLINED "OBJECT" RESET_UNDERLINED " "
+				UNDERLINED "TEXTURE" RESET_UNDERLINED "\n", argv[0]);
 		return 0;
 	}
 	app_t app = {};
 
-	if (initialization(&app, argv[1]) == -1) {
+	if (initialization(&app, argv[1], argv[2]) == -1) {
 		return 1;
 	}
 

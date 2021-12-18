@@ -268,9 +268,19 @@ static int initialize_texture_map(const app_t *app, const texture_t *texture)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_BGRA,
 				GL_UNSIGNED_BYTE, texture->data);
 	} else {
+		fprintf(stderr, "Support only 3 or 4 texture channel count.\n");
+		return -1;
+	}
+	GLenum error = glGetError();
+	if (error == GL_INVALID_VALUE) {
+		if ((u_int)texture->width > GL_MAX_TEXTURE_SIZE
+			|| (u_int)texture->height > GL_MAX_TEXTURE_SIZE) {
+			fprintf(stderr, "Texture too large.\n");
+			return -1;
+		}
 		assert(false);
 	}
-	assert(glGetError() == GL_NO_ERROR);
+	assert(error == GL_NO_ERROR);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	assert(glGetError() == GL_NO_ERROR);
 	GLint sampler_uniform = glGetUniformLocation(app->program, "sampler");
@@ -280,7 +290,7 @@ static int initialize_texture_map(const app_t *app, const texture_t *texture)
 	return 0;
 }
 
-int initialization(app_t *app, const char *object_path)
+int initialization(app_t *app, const char *object_path, const char *texture_path)
 {
 	initialize_variables(app);
 	if (initialize_glfw(app) == -1) {
@@ -300,8 +310,8 @@ int initialization(app_t *app, const char *object_path)
 	app->triangle_count = model.triangle_count;
 	app->model_bounding_box = model.bounding_box;
 	texture_t texture;
-	texture.data = load_tga("./textures/kitten.tga",
-			&texture.width, &texture.height, &texture.channel_count);
+	texture.data = load_tga(texture_path, &texture.width, &texture.height,
+			&texture.channel_count);
 	if (texture.data == NULL) {
 		free(model.vertices);
 		free(model.triangles);

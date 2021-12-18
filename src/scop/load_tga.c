@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -7,7 +8,7 @@
 #include "scop/utils/file.h"
 
 static size_t parse_tga_headers(const char *path, const u_char *file_content, size_t file_size,
-		int *width, int *height, int *channel_count)
+		int *width, int *height, int *channel_count, bool *is_top_to_bottom)
 {
 	if (file_size < 18) {
 		fprintf(stderr, "Image '%s' isn't in a valid Truevision TGA format.\n", path);
@@ -35,6 +36,11 @@ static size_t parse_tga_headers(const char *path, const u_char *file_content, si
 		return (size_t)-1;
 	}
 	*channel_count = pixel_depth / 8;
+	if (file_content[17] & 0b00100000) {
+		*is_top_to_bottom = true;
+	} else {
+		*is_top_to_bottom = false;
+	}
 	return 18 + id_length;
 }
 
@@ -45,22 +51,18 @@ u_char *load_tga(const char *path, int *width, int *height, int *channel_count)
 	if (file_content == NULL) {
 		return NULL;
 	}
+	bool is_top_to_bottom;
 	size_t file_data_offset = parse_tga_headers(path, file_content, file_size,
-		width, height, channel_count);
+			width, height, channel_count, &is_top_to_bottom);
 	if (file_data_offset == (size_t)-1) {
 		free(file_content);
 		return NULL;
 	}
 	size_t width_size = *width * *channel_count;
 	size_t file_data_size = width_size * *height;
-	if (file_size != file_data_offset + file_data_size) {
-		fprintf(stderr, "Image '%s' isn't in a valid Truevision TGA format.\n", path);
-		free(file_content);
-		return NULL;
-	}
 	size_t padding_size;
 	if (*width % 4 != 0) {
-		padding_size = (4 - *width % 4);
+		padding_size = *width % 4;
 	} else {
 		padding_size = 0;
 	}
@@ -69,13 +71,23 @@ u_char *load_tga(const char *path, int *width, int *height, int *channel_count)
 		free(file_content);
 		return NULL;
 	}
-	data += file_data_size + (padding_size * *height);
 	u_char *file_data_it = file_content + file_data_offset;
-	for (int i = 0; i < *height; i++) {
-		memcpy(data - padding_size, "\0\0\0\0", padding_size);
-		data -= width_size + padding_size;
-		memcpy(data, file_data_it, width_size);
-		file_data_it += width_size;
+	if (is_top_to_bottom == true) {
+		data += file_data_size + (padding_size * *height);
+		for (int i = 0; i < *height; i++) {
+			memcpy(data - padding_size, "\0\0\0\0", padding_size);
+			data -= width_size + padding_size;
+			memcpy(data, file_data_it, width_size);
+			file_data_it += width_size;
+		}
+	} else {
+		u_char *data_it = data;
+		for (int i = 0; i < *height; i++) {
+			memcpy(data_it, file_data_it, width_size);
+			memcpy(data_it + width_size, "\0\0\0\0", padding_size);
+			data_it += width_size + padding_size;
+			file_data_it += width_size;
+		}
 	}
 	free(file_content);
 	return data;
