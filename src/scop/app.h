@@ -66,6 +66,7 @@ typedef struct app_s
 	bounding_box_t model_bounding_box;
 	bool is_entering_free_flight;
 	vec2_double_t cursor_last_pos;
+	GLfloat model_y_rotation;
 	bool should_model_rotate;
 	bool should_use_orthographic;
 	texture_animation_phase_t texture_animation_phase;

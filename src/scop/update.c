@@ -87,15 +87,18 @@ static void process_animations(app_t *app)
 			app->texture_portion = 1;
 		}
 	}
+
+	if (app->should_model_rotate == true) {
+		app->model_y_rotation += app->time.delta * 30;
+		if (app->model_y_rotation > 360) {
+			app->model_y_rotation -= 360;
+		}
+	}
 }
 
 static void set_model_mat4(app_t *app, mat4_t model_mat4)
 {
-	if (app->should_model_rotate == false) {
-		set_identity_mat4(model_mat4);
-		return;
-	}
-	set_yaw_mat4(model_mat4, radians(app->time.current * 30));
+	set_yaw_mat4(model_mat4, radians(app->model_y_rotation));
 }
 
 static void set_view_mat4(app_t *app, mat4_t view_mat4)
