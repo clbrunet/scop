@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -251,6 +252,11 @@ static void  center_bounding_box(model_t *model)
 
 int load_obj(model_t *model, const char *path)
 {
+	const char *extension =  strrchr(path, '.');
+	if (extension == NULL || strcmp(extension, ".obj") != 0) {
+		fprintf(stderr, "Object '%s' must have '.obj' extension.\n", path);
+		return -1;
+	}
 	char *file_content = read_file(path, NULL);
 	if (file_content == NULL) {
 		return -1;

@@ -17,12 +17,12 @@
 int main(int argc, char *argv[])
 {
 	if (argc != 3) {
-		printf("Usage: %s " UNDERLINED "OBJECT" RESET_UNDERLINED " "
-				UNDERLINED "TEXTURE" RESET_UNDERLINED "\n", argv[0]);
+		printf("Usage: %s " UNDERLINED "OBJECT.obj" RESET_UNDERLINED " "
+				UNDERLINED "TEXTURE.tga" RESET_UNDERLINED "\n", argv[0]);
 		return 0;
 	}
-	app_t app = {};
 
+	app_t app = {};
 	if (initialization(&app, argv[1], argv[2]) == -1) {
 		return 1;
 	}

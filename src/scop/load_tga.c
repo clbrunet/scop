@@ -46,6 +46,11 @@ static size_t parse_tga_headers(const char *path, const u_char *file_content, si
 
 u_char *load_tga(const char *path, int *width, int *height, int *channel_count)
 {
+	const char *extension =  strrchr(path, '.');
+	if (extension == NULL || strcmp(extension, ".tga") != 0) {
+		fprintf(stderr, "Image '%s' must have '.tga' extension.\n", path);
+		return NULL;
+	}
 	size_t file_size;
 	u_char *file_content = (u_char *)read_file(path, &file_size);
 	if (file_content == NULL) {
