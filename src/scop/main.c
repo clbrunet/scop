@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <err.h>
+#include <unistd.h>
 
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
@@ -13,6 +14,22 @@
 #include "scop/update.h"
 #include "scop/destruction.h"
 #include "scop/style.h"
+
+static int update_fps(const app_t *app, int *frame_count, int *last_fps_print)
+{
+	int length = snprintf(NULL, 0, "SCOP %f", (float)*frame_count / (app->time.current - *last_fps_print));
+	char *title = malloc((length + 1) * sizeof(char));
+	if (title == NULL) {
+		err(1, "malloc");
+		return -1;
+	}
+	sprintf(title, "SCOP %.1f", (float)*frame_count / (app->time.current - *last_fps_print));
+	glfwSetWindowTitle(app->window, title);
+	free(title);
+	*frame_count = 0;
+	*last_fps_print = app->time.current;
+	return 0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -29,30 +46,30 @@ int main(int argc, char *argv[])
 
 	GLdouble last_frame_time = glfwGetTime();
 	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
+	GLdouble last_swap_time = glfwGetTime();
+	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 	int frame_count = 0;
-	int last_fps_print = last_frame_time;
+	int last_fps_print = glfwGetTime();
+	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 	while (glfwWindowShouldClose(app.window) == GLFW_FALSE) {
 		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 		app.time.current = glfwGetTime();
 		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 		app.time.delta = app.time.current - last_frame_time;
 		if (app.time.current - last_fps_print > 1) {
-			int length = snprintf(NULL, 0, "SCOP %f", (float)frame_count / (app.time.current - last_fps_print));
-			char *title = malloc((length + 1) * sizeof(char));
-			if (title == NULL) {
-				err(1, "malloc");
+			if (update_fps(&app, &frame_count, &last_fps_print) == -1) {
 				break;
 			}
-			sprintf(title, "SCOP %.1f", (float)frame_count / (app.time.current - last_fps_print));
-			glfwSetWindowTitle(app.window, title);
-			free(title);
-			frame_count = 0;
-			last_fps_print = app.time.current;
 		}
 
 		update(&app);
 
+		while (glfwGetTime() - last_swap_time < (GLdouble)1 / 60) {
+			usleep(100);
+		}
 		glfwSwapBuffers(app.window);
+		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
+		last_swap_time = glfwGetTime();
 		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 		glfwPollEvents();
 		assert(glfwGetError(NULL) == GLFW_NO_ERROR);

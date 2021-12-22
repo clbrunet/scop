@@ -18,6 +18,7 @@
 #include "scop/load_obj.h"
 #include "scop/load_tga.h"
 #include "scop/destruction.h"
+#include "scop/vectors/vec3.h"
 #include "scop/utils/math.h"
 
 static void initialize_variables(app_t *app)
