@@ -8,6 +8,7 @@
 #include "GLFW/glfw3.h"
 #include "glad/glad.h"
 
+#include "scop/update.h"
 #include "scop/app.h"
 #include "scop/vectors/vec2_double.h"
 #include "scop/vectors/vec3.h"
@@ -135,10 +136,10 @@ static void set_projection_view_model_mat4(app_t *app, mat4_t projection_view_mo
 				-app->model_bounding_box.max_distance * aspect_ratio * 1.1,
 				app->model_bounding_box.max_distance * aspect_ratio * 1.1,
 				-app->model_bounding_box.max_distance * 1.1,
-				app->model_bounding_box.max_distance * 1.1, 0.1, 1000);
+				app->model_bounding_box.max_distance * 1.1, NEAR_PLANE, FAR_PLANE);
 	} else {
 		set_perspective_projection_mat4(projection_mat4, radians(app->fov),
-				aspect_ratio, 0.1, 1000);
+				aspect_ratio, NEAR_PLANE, FAR_PLANE);
 	}
 
 	mat4_t view_model_mat4;
