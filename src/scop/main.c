@@ -67,9 +67,9 @@ int main(int argc, char *argv[])
 		while (glfwGetTime() - last_swap_time < (GLdouble)1 / 60) {
 			usleep(100);
 		}
-		glfwSwapBuffers(app.window);
-		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 		last_swap_time = glfwGetTime();
+		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
+		glfwSwapBuffers(app.window);
 		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 		glfwPollEvents();
 		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
