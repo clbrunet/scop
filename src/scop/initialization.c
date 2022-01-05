@@ -27,20 +27,24 @@ static void initialize_variables(app_t *app)
 	app->window.height = 720;
 
 	app->fov = 90;
+	app->should_use_orthographic = false;
 
 	app->camera.position.x = 0;
 	app->camera.position.y = 0;
 	app->camera.position.z = 10;
-
 	app->camera.rotation.x = 0;
 	app->camera.rotation.y = 0;
 
 	app->is_entering_free_flight = false;
-	app->should_model_rotate = true;
-	app->should_use_orthographic = false;
+
+	app->model_info.yaw = 0;
+	app->model_info.should_rotate = true;
+	app->model_info.position = (vec3_t){ .x = 0, .y = 0, .z = 0 };
 
 	app->texture_animation_phase = TO_COLOR;
 	app->texture_portion = 0;
+
+	app->selected_axis = X;
 }
 
 static int initialize_glfw_create_window(app_t *app)
@@ -308,8 +312,8 @@ int initialization(app_t *app, const char *object_path, const char *texture_path
 		glfwTerminate();
 		return -1;
 	}
-	app->model_triangle_count = model.triangles_count;
-	app->model_bounding_box = model.bounding_box;
+	app->model_info.triangles_count = model.triangles_count;
+	app->model_info.bounding_box = model.bounding_box;
 	texture_t texture;
 	texture.data = load_tga(texture_path, &texture.width, &texture.height,
 			&texture.channel_count);

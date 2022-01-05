@@ -18,72 +18,65 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
-static void debug_key(int key, int scancode, int action, int mods)
-{
-	return;
-	printf("\n");
-	printf("key: %i\n", key);
-	printf("scancode: %i\n", scancode);
-	printf("action: %i\n", action);
-	printf("mods: %i\n", mods);
-}
-
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-	debug_key(key, scancode, action, mods);
 	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
 
 	if (action == GLFW_PRESS) {
-		if (key == GLFW_KEY_ESCAPE) {
-			glfwSetWindowShouldClose(window, GLFW_TRUE);
-		}
+		switch (key) {
+			case GLFW_KEY_ESCAPE:
+				glfwSetWindowShouldClose(window, GLFW_TRUE);
+				break;
 
-		if (key == GLFW_KEY_P) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-		} else if (key == GLFW_KEY_L) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		} else if (key == GLFW_KEY_F) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		}
+			case GLFW_KEY_P:
+				glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+				break;
+			case GLFW_KEY_L:
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				break;
+			case GLFW_KEY_F:
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				break;
 
-		if (key == GLFW_KEY_R) {
-			if (app->should_model_rotate == true) {
-				app->should_model_rotate = false;
-			} else {
-				app->should_model_rotate = true;
-			}
-		}
+			case GLFW_KEY_R:
+				if (app->model_info.should_rotate == true) {
+					app->model_info.should_rotate = false;
+				} else {
+					app->model_info.should_rotate = true;
+				}
+				break;
 
-		if (key == GLFW_KEY_O) {
-			if (app->should_use_orthographic == false) {
-				app->should_use_orthographic = true;
-			} else {
-				app->should_use_orthographic = false;
-			}
-		}
+			case GLFW_KEY_O:
+				if (app->should_use_orthographic == false) {
+					app->should_use_orthographic = true;
+				} else {
+					app->should_use_orthographic = false;
+				}
+				break;
 
-		if (key == GLFW_KEY_T) {
-			if (app->texture_animation_phase == TO_COLOR) {
-				app->texture_animation_phase = TO_TEXTURE;
-			} else {
-				app->texture_animation_phase = TO_COLOR;
-			}
+			case GLFW_KEY_T:
+				if (app->texture_animation_phase == TO_COLOR) {
+					app->texture_animation_phase = TO_TEXTURE;
+				} else {
+					app->texture_animation_phase = TO_COLOR;
+				}
+				break;
+
+			case GLFW_KEY_X:
+				app->selected_axis = X;
+				break;
+			case GLFW_KEY_Y:
+				app->selected_axis = Y;
+				break;
+			case GLFW_KEY_Z:
+				app->selected_axis = Z;
+				break;
 		}
 	}
 }
 
-static void debug_mouse_button(int button, int action, int mods)
-{
-	return;
-	printf("\n");
-	printf("button: %i\n", button);
-	printf("action: %i\n", action);
-	printf("mods: %i\n", mods);
-}
-
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-	debug_mouse_button(button, action, mods);
 	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
 
 	if (button == GLFW_MOUSE_BUTTON_RIGHT) {
@@ -96,18 +89,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	}
 }
 
-static void debug_scroll(double xoffset, double yoffset)
-{
-	return;
-	printf("\n");
-	printf("xoffset: %f\n", xoffset);
-	printf("yoffset: %f\n", yoffset);
-}
-
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	debug_scroll(xoffset, yoffset);
-
 	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
 	app->fov -= yoffset * 3;
 	if (app->fov < 60) {

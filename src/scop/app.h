@@ -65,6 +65,22 @@ typedef struct opengl_s
 	uniforms_t uniforms;
 }	opengl_t;
 
+typedef struct model_info_s
+{
+	GLsizei triangles_count;
+	bounding_box_t bounding_box;
+	GLfloat yaw;
+	bool should_rotate;
+	vec3_t position;
+}	model_info_t;
+
+typedef enum axis_e
+{
+	X,
+	Y,
+	Z,
+}	axis_t;
+
 typedef struct app_s
 {
 	window_t window;
@@ -75,12 +91,10 @@ typedef struct app_s
 	camera_t camera;
 	bool is_entering_free_flight;
 	vec2_double_t cursor_last_pos;
-	GLsizei model_triangle_count;
-	bounding_box_t model_bounding_box;
-	GLfloat model_y_rotation;
-	bool should_model_rotate;
+	model_info_t model_info;
 	texture_animation_phase_t texture_animation_phase;
 	GLfloat texture_portion;
+	axis_t selected_axis;
 }	app_t;
 
 #endif

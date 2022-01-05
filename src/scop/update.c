@@ -70,9 +70,44 @@ static void process_inputs_movements(app_t *app)
 	app->camera.position = vec3_addition(&app->camera.position, &movement);
 }
 
+static void process_inputs_move_model(app_t *app)
+{
+	float movement = 0;
+	if (glfwGetKey(app->window.ptr, GLFW_KEY_MINUS) == GLFW_PRESS) {
+		movement--;
+	}
+	if (glfwGetKey(app->window.ptr, GLFW_KEY_EQUAL) == GLFW_PRESS) {
+		movement++;
+	}
+	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
+
+	GLfloat speed;
+	if (glfwGetKey(app->window.ptr, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+		speed = 3;
+	} else if (glfwGetKey(app->window.ptr, GLFW_KEY_LEFT_ALT) == GLFW_PRESS) {
+		speed = 0.5;
+	} else {
+		speed = 1;
+	}
+	movement *= speed * app->time.delta;
+	switch (app->selected_axis) {
+		case X:
+			app->model_info.position.x += movement;
+			break;
+		case Y:
+			app->model_info.position.y += movement;
+			break;
+		case Z:
+			app->model_info.position.z += movement;
+			break;
+	}
+	print_vec3(&app->model_info.position);
+}
+
 static void process_inputs(app_t *app)
 {
 	process_inputs_movements(app);
+	process_inputs_move_model(app);
 }
 
 static void process_animations(app_t *app)
@@ -89,17 +124,27 @@ static void process_animations(app_t *app)
 		}
 	}
 
-	if (app->should_model_rotate == true) {
-		app->model_y_rotation += app->time.delta * 30;
-		if (app->model_y_rotation > 360) {
-			app->model_y_rotation -= 360;
+	if (app->model_info.should_rotate == true) {
+		app->model_info.yaw += app->time.delta * 30;
+		if (app->model_info.yaw > 360) {
+			app->model_info.yaw -= 360;
 		}
 	}
 }
 
 static void set_model_mat4(app_t *app, mat4_t model_mat4)
 {
-	set_yaw_mat4(model_mat4, radians(app->model_y_rotation));
+	mat4_t translation_mat4 = {
+		{ 1, 0, 0, app->model_info.position.x },
+		{ 0, 1, 0, app->model_info.position.y },
+		{ 0, 0, 1, app->model_info.position.z },
+		{ 0, 0, 0, 1 },
+	};
+
+	mat4_t yaw_mat4;
+	set_yaw_mat4(yaw_mat4, radians(app->model_info.yaw));
+
+	mat4_multiplication(translation_mat4, yaw_mat4, model_mat4);
 }
 
 static void set_view_mat4(app_t *app, mat4_t view_mat4)
@@ -133,10 +178,10 @@ static void set_projection_view_model_mat4(app_t *app, mat4_t projection_view_mo
 	GLfloat aspect_ratio = (GLfloat)app->window.width / (GLfloat)app->window.height;
 	if (app->should_use_orthographic == true) {
 		set_orthographic_projection_mat4(projection_mat4,
-				-app->model_bounding_box.max_distance * aspect_ratio * 1.1,
-				app->model_bounding_box.max_distance * aspect_ratio * 1.1,
-				-app->model_bounding_box.max_distance * 1.1,
-				app->model_bounding_box.max_distance * 1.1, NEAR_PLANE, FAR_PLANE);
+				-app->model_info.bounding_box.max_distance * aspect_ratio * 1.1,
+				app->model_info.bounding_box.max_distance * aspect_ratio * 1.1,
+				-app->model_info.bounding_box.max_distance * 1.1,
+				app->model_info.bounding_box.max_distance * 1.1, NEAR_PLANE, FAR_PLANE);
 	} else {
 		set_perspective_projection_mat4(projection_mat4, radians(app->fov),
 				aspect_ratio, NEAR_PLANE, FAR_PLANE);
@@ -165,6 +210,6 @@ void update(app_t *app)
 	glUniform1f(app->opengl.uniforms.texture_portion, app->texture_portion);
 	assert(glGetError() == GL_NO_ERROR);
 
-	glDrawArrays(GL_TRIANGLES, 0, app->model_triangle_count * 3);
+	glDrawArrays(GL_TRIANGLES, 0, app->model_info.triangles_count * 3);
 	assert(glGetError() == GL_NO_ERROR);
 }
