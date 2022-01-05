@@ -23,8 +23,8 @@
 
 static void initialize_variables(app_t *app)
 {
-	app->window_width = 1280;
-	app->window_height = 720;
+	app->window.width = 1280;
+	app->window.height = 720;
 
 	app->fov = 90;
 
@@ -56,8 +56,8 @@ static int initialize_glfw_create_window(app_t *app)
 	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 #endif
 
-	app->window = glfwCreateWindow(app->window_width, app->window_height, "SCOP", NULL, NULL);
-	if (app->window == NULL) {
+	app->window.ptr = glfwCreateWindow(app->window.width, app->window.height, "SCOP", NULL, NULL);
+	if (app->window.ptr == NULL) {
 		fprintf(stderr, "Window or OpenGL context creation failed failed\n");
 		const char *description;
 		glfwGetError(&description);
@@ -68,10 +68,10 @@ static int initialize_glfw_create_window(app_t *app)
 		return -1;
 	}
 
-	glfwSetWindowUserPointer(app->window, app);
+	glfwSetWindowUserPointer(app->window.ptr, app);
 	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 
-	glfwMakeContextCurrent(app->window);
+	glfwMakeContextCurrent(app->window.ptr);
 	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 
 	glfwSwapInterval(1);
@@ -81,15 +81,15 @@ static int initialize_glfw_create_window(app_t *app)
 
 static void initialize_glfw_callbacks(app_t *app)
 {
-	glfwSetFramebufferSizeCallback(app->window, &framebuffer_size_callback);
+	glfwSetFramebufferSizeCallback(app->window.ptr, &framebuffer_size_callback);
 	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
-	glfwSetKeyCallback(app->window, &key_callback);
+	glfwSetKeyCallback(app->window.ptr, &key_callback);
 	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
-	glfwSetMouseButtonCallback(app->window, &mouse_button_callback);
+	glfwSetMouseButtonCallback(app->window.ptr, &mouse_button_callback);
 	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
-	glfwSetScrollCallback(app->window, &scroll_callback);
+	glfwSetScrollCallback(app->window.ptr, &scroll_callback);
 	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
-	glfwSetCursorPosCallback(app->window, &cursor_pos_callback);
+	glfwSetCursorPosCallback(app->window.ptr, &cursor_pos_callback);
 	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 }
 
@@ -124,31 +124,31 @@ static int initialize_gl(app_t *app)
 	assert(version);
 	printf("OpenGL version : %s\n", version);
 
-	glViewport(0, 0, app->window_width, app->window_height);
+	glViewport(0, 0, app->window.width, app->window.height);
 	assert(glGetError() == GL_NO_ERROR);
 	glEnable(GL_DEPTH_TEST);
 	assert(glGetError() == GL_NO_ERROR);
 	glPointSize(2);
 	assert(glGetError() == GL_NO_ERROR);
 
-	app->program = create_program("./shaders/main.vert", "./shaders/main.frag");
-	if (app->program == 0) {
+	app->opengl.program = create_program("./shaders/main.vert", "./shaders/main.frag");
+	if (app->opengl.program == 0) {
 		glfwTerminate();
 		return -1;
 	}
-	glUseProgram(app->program);
+	glUseProgram(app->opengl.program);
 	GLenum error = glGetError();
 	if (error == GL_INVALID_OPERATION) {
 		fprintf(stderr, "glUseProgram invalid operation error\n");
-		glDeleteProgram(app->program);
+		glDeleteProgram(app->opengl.program);
 		return -1;
 	}
 	assert(error == GL_NO_ERROR);
 
-	app->uniforms.projection_view_model = glGetUniformLocation(app->program, "projection_view_model");
-	assert(app->uniforms.projection_view_model != -1);
-	app->uniforms.texture_portion = glGetUniformLocation(app->program, "texture_portion");
-	assert(app->uniforms.texture_portion != -1);
+	app->opengl.uniforms.projection_view_model = glGetUniformLocation(app->opengl.program, "projection_view_model");
+	assert(app->opengl.uniforms.projection_view_model != -1);
+	app->opengl.uniforms.texture_portion = glGetUniformLocation(app->opengl.program, "texture_portion");
+	assert(app->opengl.uniforms.texture_portion != -1);
 	return 0;
 }
 
@@ -178,8 +178,8 @@ static vec2_t get_texture_coordinates(const vec3_t *position, const vec3_t *norm
 static int initialize_array_buffer_data(array_buffer_data_t *array_buffer_data,
 		const model_t *model, GLfloat texture_aspect_ratio)
 {
-	array_buffer_data->vertex_count = model->triangle_count * 3;
-	array_buffer_data->vertices = malloc(array_buffer_data->vertex_count * sizeof(vertex_t));
+	array_buffer_data->vertices_count = model->triangles_count * 3;
+	array_buffer_data->vertices = malloc(array_buffer_data->vertices_count * sizeof(vertex_t));
 	if (array_buffer_data->vertices == NULL) {
 		err(1, "malloc");
 		return -1;
@@ -189,20 +189,20 @@ static int initialize_array_buffer_data(array_buffer_data_t *array_buffer_data,
 	GLfloat whiteness_shift = -0.04;
 	vertex_t *vertex_it = array_buffer_data->vertices;
 	triangle_t *triangle_it = model->triangles;
-	for (GLuint i = 0; i < model->triangle_count; i++) {
+	for (GLuint i = 0; i < model->triangles_count; i++) {
 		vec3_t color = vec3(whiteness, whiteness, whiteness);
-		vec3_t normal = get_triangle_normal(&model->vertices[(*triangle_it)[0]],
-				&model->vertices[(*triangle_it)[1]],
-				&model->vertices[(*triangle_it)[2]]);
-		vertex_it[0].position = model->vertices[(*triangle_it)[0]];
+		vec3_t normal = get_triangle_normal(&model->vertices_position[(*triangle_it)[0]],
+				&model->vertices_position[(*triangle_it)[1]],
+				&model->vertices_position[(*triangle_it)[2]]);
+		vertex_it[0].position = model->vertices_position[(*triangle_it)[0]];
 		vertex_it[0].color = color;
 		vertex_it[0].texture_coordinates = get_texture_coordinates(
 				&vertex_it[0].position, &normal, &model->bounding_box, texture_aspect_ratio);
-		vertex_it[1].position = model->vertices[(*triangle_it)[1]];
+		vertex_it[1].position = model->vertices_position[(*triangle_it)[1]];
 		vertex_it[1].color = color;
 		vertex_it[1].texture_coordinates = get_texture_coordinates(
 				&vertex_it[1].position, &normal, &model->bounding_box, texture_aspect_ratio);
-		vertex_it[2].position = model->vertices[(*triangle_it)[2]];
+		vertex_it[2].position = model->vertices_position[(*triangle_it)[2]];
 		vertex_it[2].color = color;
 		vertex_it[2].texture_coordinates = get_texture_coordinates(
 				&vertex_it[2].position, &normal, &model->bounding_box, texture_aspect_ratio);
@@ -220,9 +220,9 @@ static int initialize_array_buffer_data(array_buffer_data_t *array_buffer_data,
 
 static int initialize_array_buffer(const app_t *app, const array_buffer_data_t *array_buffer_data)
 {
-	glBindBuffer(GL_ARRAY_BUFFER, app->vertex_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, app->opengl.vertex_buffer);
 	assert(glGetError() == GL_NO_ERROR);
-	glBufferData(GL_ARRAY_BUFFER, array_buffer_data->vertex_count * sizeof(vertex_t),
+	glBufferData(GL_ARRAY_BUFFER, array_buffer_data->vertices_count * sizeof(vertex_t),
 			array_buffer_data->vertices, GL_STATIC_DRAW);
 	GLenum error = glGetError();
 	if (error == GL_OUT_OF_MEMORY) {
@@ -256,7 +256,7 @@ static int initialize_texture_map(const app_t *app, const texture_t *texture)
 {
 	glActiveTexture(GL_TEXTURE0);
 	assert(glGetError() == GL_NO_ERROR);
-	glBindTexture(GL_TEXTURE_2D, app->texture_map);
+	glBindTexture(GL_TEXTURE_2D, app->opengl.texture_map);
 	assert(glGetError() == GL_NO_ERROR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 	assert(glGetError() == GL_NO_ERROR);
@@ -284,7 +284,7 @@ static int initialize_texture_map(const app_t *app, const texture_t *texture)
 	assert(error == GL_NO_ERROR);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	assert(glGetError() == GL_NO_ERROR);
-	GLint sampler_uniform = glGetUniformLocation(app->program, "sampler");
+	GLint sampler_uniform = glGetUniformLocation(app->opengl.program, "sampler");
 	assert(sampler_uniform != -1);
 	glUniform1i(sampler_uniform, 0);
 	assert(glGetError() == GL_NO_ERROR);
@@ -304,43 +304,43 @@ int initialization(app_t *app, const char *object_path, const char *texture_path
 
 	model_t model;
 	if (load_obj(&model, object_path) == -1) {
-		glDeleteProgram(app->program);
+		glDeleteProgram(app->opengl.program);
 		glfwTerminate();
 		return -1;
 	}
-	app->triangle_count = model.triangle_count;
+	app->model_triangle_count = model.triangles_count;
 	app->model_bounding_box = model.bounding_box;
 	texture_t texture;
 	texture.data = load_tga(texture_path, &texture.width, &texture.height,
 			&texture.channel_count);
 	if (texture.data == NULL) {
-		free(model.vertices);
+		free(model.vertices_position);
 		free(model.triangles);
-		glDeleteProgram(app->program);
+		glDeleteProgram(app->opengl.program);
 		glfwTerminate();
 		return -1;
 	}
 	array_buffer_data_t array_buffer_data;
 	if (initialize_array_buffer_data(&array_buffer_data, &model,
 			(GLfloat)texture.width / (GLfloat)texture.height) == -1) {
-		free(model.vertices);
+		free(model.vertices_position);
 		free(model.triangles);
 		free(texture.data);
-		glDeleteProgram(app->program);
+		glDeleteProgram(app->opengl.program);
 		glfwTerminate();
 		return -1;
 	}
-	free(model.vertices);
+	free(model.vertices_position);
 	free(model.triangles);
 
-	glGenVertexArrays(1, &app->vertex_array);
+	glGenVertexArrays(1, &app->opengl.vertex_array);
 	assert(glGetError() == GL_NO_ERROR);
-	glGenBuffers(1, &app->vertex_buffer);
+	glGenBuffers(1, &app->opengl.vertex_buffer);
 	assert(glGetError() == GL_NO_ERROR);
-	glGenTextures(1, &app->texture_map);
+	glGenTextures(1, &app->opengl.texture_map);
 	assert(glGetError() == GL_NO_ERROR);
 
-	glBindVertexArray(app->vertex_array);
+	glBindVertexArray(app->opengl.vertex_array);
 	assert(glGetError() == GL_NO_ERROR);
 
 	if (initialize_array_buffer(app, &array_buffer_data) == -1) {

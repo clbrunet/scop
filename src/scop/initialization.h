@@ -17,7 +17,7 @@ typedef struct vertex_s
 
 typedef struct array_buffer_data_s
 {
-	GLuint vertex_count;
+	GLuint vertices_count;
 	vertex_t *vertices;
 }	array_buffer_data_t;
 
@@ -31,9 +31,9 @@ typedef struct texture_s
 
 typedef struct model_s
 {
-	GLuint vertex_count;
-	vec3_t *vertices;
-	GLuint triangle_count;
+	GLuint vertices_count;
+	vec3_t *vertices_position;
+	GLuint triangles_count;
 	triangle_t *triangles;
 	bounding_box_t bounding_box;
 }	model_t;

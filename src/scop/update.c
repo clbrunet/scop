@@ -18,23 +18,23 @@
 
 static void process_inputs_movements(app_t *app)
 {
-	if (glfwGetMouseButton(app->window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE) {
+	if (glfwGetMouseButton(app->window.ptr, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE) {
 		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 		return;
 	}
 
 	vec3_t movement = {};
 
-	if (glfwGetKey(app->window, GLFW_KEY_W) == GLFW_PRESS) {
+	if (glfwGetKey(app->window.ptr, GLFW_KEY_W) == GLFW_PRESS) {
 		movement.z--;
 	}
-	if (glfwGetKey(app->window, GLFW_KEY_S) == GLFW_PRESS) {
+	if (glfwGetKey(app->window.ptr, GLFW_KEY_S) == GLFW_PRESS) {
 		movement.z++;
 	}
-	if (glfwGetKey(app->window, GLFW_KEY_A) == GLFW_PRESS) {
+	if (glfwGetKey(app->window.ptr, GLFW_KEY_A) == GLFW_PRESS) {
 		movement.x--;
 	}
-	if (glfwGetKey(app->window, GLFW_KEY_D) == GLFW_PRESS) {
+	if (glfwGetKey(app->window.ptr, GLFW_KEY_D) == GLFW_PRESS) {
 		movement.x++;
 	}
 	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
@@ -50,18 +50,18 @@ static void process_inputs_movements(app_t *app)
 	vec4_t movement_vec4 = mat4_vec4_multiplication(rotation_mat4, vec3_to_vec4(&movement));
 	movement = vec4_to_vec3(&movement_vec4);
 
-	if (glfwGetKey(app->window, GLFW_KEY_Q) == GLFW_PRESS) {
+	if (glfwGetKey(app->window.ptr, GLFW_KEY_Q) == GLFW_PRESS) {
 		movement.y--;
 	}
-	if (glfwGetKey(app->window, GLFW_KEY_E) == GLFW_PRESS) {
+	if (glfwGetKey(app->window.ptr, GLFW_KEY_E) == GLFW_PRESS) {
 		movement.y++;
 	}
 	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 
 	GLfloat speed;
-	if (glfwGetKey(app->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+	if (glfwGetKey(app->window.ptr, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
 		speed = 20;
-	} else if (glfwGetKey(app->window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS) {
+	} else if (glfwGetKey(app->window.ptr, GLFW_KEY_LEFT_ALT) == GLFW_PRESS) {
 		speed = 1;
 	} else {
 		speed = 8;
@@ -130,7 +130,7 @@ static void set_projection_view_model_mat4(app_t *app, mat4_t projection_view_mo
 	set_view_mat4(app, view_mat4);
 
 	mat4_t projection_mat4;
-	GLfloat aspect_ratio = (GLfloat)app->window_width / (GLfloat)app->window_height;
+	GLfloat aspect_ratio = (GLfloat)app->window.width / (GLfloat)app->window.height;
 	if (app->should_use_orthographic == true) {
 		set_orthographic_projection_mat4(projection_mat4,
 				-app->model_bounding_box.max_distance * aspect_ratio * 1.1,
@@ -159,12 +159,12 @@ void update(app_t *app)
 	mat4_t projection_view_model_mat4;
 	set_projection_view_model_mat4(app, projection_view_model_mat4);
 
-	glUniformMatrix4fv(app->uniforms.projection_view_model, 1, GL_TRUE,
+	glUniformMatrix4fv(app->opengl.uniforms.projection_view_model, 1, GL_TRUE,
 			(const GLfloat *)projection_view_model_mat4);
 	assert(glGetError() == GL_NO_ERROR);
-	glUniform1f(app->uniforms.texture_portion, app->texture_portion);
+	glUniform1f(app->opengl.uniforms.texture_portion, app->texture_portion);
 	assert(glGetError() == GL_NO_ERROR);
 
-	glDrawArrays(GL_TRIANGLES, 0, app->triangle_count * 3);
+	glDrawArrays(GL_TRIANGLES, 0, app->model_triangle_count * 3);
 	assert(glGetError() == GL_NO_ERROR);
 }

@@ -13,8 +13,8 @@
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
 	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
-	app->window_width = width;
-	app->window_height = height;
+	app->window.width = width;
+	app->window.height = height;
 	glViewport(0, 0, width, height);
 }
 

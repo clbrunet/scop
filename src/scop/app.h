@@ -49,26 +49,36 @@ typedef enum texture_animation_phase_e
 	TO_TEXTURE,
 }	texture_animation_phase_t;
 
-typedef struct app_s
+typedef struct window_s
 {
-	GLFWwindow *window;
-	GLsizei window_width;
-	GLsizei window_height;
+	GLFWwindow *ptr;
+	GLsizei width;
+	GLsizei height;
+}	window_t;
+
+typedef struct opengl_s
+{
 	GLuint program;
 	GLuint vertex_array;
 	GLuint vertex_buffer;
 	GLuint texture_map;
-	GLsizei triangle_count;
 	uniforms_t uniforms;
+}	opengl_t;
+
+typedef struct app_s
+{
+	window_t window;
+	opengl_t opengl;
 	update_time_t time;
 	GLfloat fov;
+	bool should_use_orthographic;
 	camera_t camera;
-	bounding_box_t model_bounding_box;
 	bool is_entering_free_flight;
 	vec2_double_t cursor_last_pos;
+	GLsizei model_triangle_count;
+	bounding_box_t model_bounding_box;
 	GLfloat model_y_rotation;
 	bool should_model_rotate;
-	bool should_use_orthographic;
 	texture_animation_phase_t texture_animation_phase;
 	GLfloat texture_portion;
 }	app_t;

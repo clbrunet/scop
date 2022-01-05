@@ -24,7 +24,7 @@ static int update_fps(const app_t *app, int *frame_count, int *last_fps_print)
 		return -1;
 	}
 	sprintf(title, "SCOP %.1f", (float)*frame_count / (app->time.current - *last_fps_print));
-	glfwSetWindowTitle(app->window, title);
+	glfwSetWindowTitle(app->window.ptr, title);
 	free(title);
 	*frame_count = 0;
 	*last_fps_print = app->time.current;
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 	int frame_count = 0;
 	int last_fps_print = glfwGetTime();
 	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
-	while (glfwWindowShouldClose(app.window) == GLFW_FALSE) {
+	while (glfwWindowShouldClose(app.window.ptr) == GLFW_FALSE) {
 		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 		app.time.current = glfwGetTime();
 		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 		}
 		last_swap_time = glfwGetTime();
 		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
-		glfwSwapBuffers(app.window);
+		glfwSwapBuffers(app.window.ptr);
 		assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 		glfwPollEvents();
 		assert(glfwGetError(NULL) == GLFW_NO_ERROR);

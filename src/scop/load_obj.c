@@ -16,7 +16,7 @@
 static void count_model_datas_vertex(model_t *model, char *data)
 {
 	(void)data;
-	model->vertex_count++;
+	model->vertices_count++;
 }
 
 static int count_model_datas_face(model_t *model, char *data)
@@ -35,14 +35,14 @@ static int count_model_datas_face(model_t *model, char *data)
 	if (count < 3) {
 		return -1;
 	}
-	model->triangle_count += count - 2;
+	model->triangles_count += count - 2;
 	return 0;
 }
 
 static int count_model_datas(model_t *model, char **lines)
 {
-	model->vertex_count = 0;
-	model->triangle_count = 0;
+	model->vertices_count = 0;
+	model->triangles_count = 0;
 
 	while (*lines != NULL) {
 		char keyword[3];
@@ -61,7 +61,7 @@ static int count_model_datas(model_t *model, char **lines)
 		}
 		lines++;
 	}
-	if (model->triangle_count == 0) {
+	if (model->triangles_count == 0) {
 		return -1;
 	}
 	return 0;
@@ -154,7 +154,7 @@ static int fill_model_datas_face(triangle_t **triangles_it, char *data, GLuint v
 
 static int fill_model_datas(model_t *model, char **lines)
 {
-	vec3_t *vertices_it = model->vertices;
+	vec3_t *vertices_it = model->vertices_position;
 	triangle_t *triangles_it = model->triangles;
 
 	while (*lines != NULL) {
@@ -169,7 +169,7 @@ static int fill_model_datas(model_t *model, char **lines)
 				return -1;
 			}
 		} else if (strcmp(keyword, "f") == 0) {
-			if (fill_model_datas_face(&triangles_it, *lines + n, model->vertex_count) == -1) {
+			if (fill_model_datas_face(&triangles_it, *lines + n, model->vertices_count) == -1) {
 				return -1;
 			}
 		}
@@ -181,13 +181,13 @@ static int fill_model_datas(model_t *model, char **lines)
 static void  set_bounding_box_axes(model_t *model)
 {
 	model->bounding_box = (bounding_box_t){
-		.x.min = model->vertices->x, .x.max = model->vertices->x,
-		.y.min = model->vertices->y, .y.max = model->vertices->y,
-		.z.min = model->vertices->z, .z.max = model->vertices->z,
+		.x.min = model->vertices_position->x, .x.max = model->vertices_position->x,
+		.y.min = model->vertices_position->y, .y.max = model->vertices_position->y,
+		.z.min = model->vertices_position->z, .z.max = model->vertices_position->z,
 	};
 
-	vec3_t *vertices_it = model->vertices + 1;
-	for (GLuint i = 1; i < model->vertex_count; i++) {
+	vec3_t *vertices_it = model->vertices_position + 1;
+	for (GLuint i = 1; i < model->vertices_count; i++) {
 		if (vertices_it->x < model->bounding_box.x.min) {
 			model->bounding_box.x.min = vertices_it->x;
 		}
@@ -220,8 +220,8 @@ static void  center_bounding_box(model_t *model)
 		.z = (model->bounding_box.z.min + model->bounding_box.z.max) / 2,
 	};
 
-	vec3_t *vertices_it = model->vertices;
-	for (GLuint i = 0; i < model->vertex_count; i++) {
+	vec3_t *vertices_it = model->vertices_position;
+	for (GLuint i = 0; i < model->vertices_count; i++) {
 		vertices_it->x -= center.x;
 		vertices_it->y -= center.y;
 		vertices_it->z -= center.z;
@@ -272,18 +272,18 @@ int load_obj(model_t *model, const char *path)
 		free_strs(lines);
 		return -1;
 	}
-	model->vertices = malloc(model->vertex_count * sizeof(vec3_t));
-	model->triangles = malloc(model->triangle_count * sizeof(triangle_t));
-	if (model->vertices == NULL || model->triangles == NULL) {
+	model->vertices_position = malloc(model->vertices_count * sizeof(vec3_t));
+	model->triangles = malloc(model->triangles_count * sizeof(triangle_t));
+	if (model->vertices_position == NULL || model->triangles == NULL) {
 		err(1, "malloc");
-		free(model->vertices);
+		free(model->vertices_position);
 		free(model->triangles);
 		free_strs(lines);
 		return -1;
 	}
 	if (fill_model_datas(model, lines) == -1) {
 		fprintf(stderr, "Object '%s' has invalid lines.\n", path);
-		free(model->vertices);
+		free(model->vertices_position);
 		free(model->triangles);
 		free_strs(lines);
 		return -1;
