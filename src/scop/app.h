@@ -15,6 +15,7 @@ typedef struct camera_s
 {
 	vec3_t position;
 	vec2_t rotation;
+	GLfloat speed;
 }	camera_t;
 
 typedef struct update_time_s

@@ -29,6 +29,8 @@ static void initialize_variables(app_t *app)
 	app->fov = 90;
 	app->should_use_orthographic = false;
 
+	app->camera.speed = 8;
+
 	app->is_entering_free_flight = false;
 
 	app->model_info.should_rotate = true;

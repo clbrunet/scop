@@ -58,13 +58,12 @@ static void process_inputs_movements(app_t *app)
 	}
 	assert(glfwGetError(NULL) == GLFW_NO_ERROR);
 
-	GLfloat speed;
+	GLfloat speed = app->camera.speed;
 	if (glfwGetKey(app->window.ptr, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-		speed = 20;
-	} else if (glfwGetKey(app->window.ptr, GLFW_KEY_LEFT_ALT) == GLFW_PRESS) {
-		speed = 1;
-	} else {
-		speed = 8;
+		speed *= 2;
+	}
+	if (glfwGetKey(app->window.ptr, GLFW_KEY_LEFT_ALT) == GLFW_PRESS) {
+		speed /= 2;
 	}
 	vec3_set_magnitude(&movement, speed * app->time.delta);
 	app->camera.position = vec3_addition(&app->camera.position, &movement);
