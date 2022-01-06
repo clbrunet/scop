@@ -1,6 +1,7 @@
-#include <assert.h>
+#include <string.h>
 #include <stdio.h>
 #include <math.h>
+#include <assert.h>
 
 #include "scop/matrices/mat4.h"
 #include "scop/matrices/mat4x1.h"
@@ -21,11 +22,7 @@ void print_mat4(mat4_t mat4)
 
 void set_zero_mat4(mat4_t mat4)
 {
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {
-			mat4[i][j] = 0;
-		}
-	}
+	memset(mat4, 0, sizeof(mat4_t));
 }
 
 void set_identity_mat4(mat4_t mat4)

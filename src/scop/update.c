@@ -101,7 +101,6 @@ static void process_inputs_move_model(app_t *app)
 			app->model_info.position.z += movement;
 			break;
 	}
-	print_vec3(&app->model_info.position);
 }
 
 static void process_inputs(app_t *app)

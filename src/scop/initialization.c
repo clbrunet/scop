@@ -29,15 +29,8 @@ static void initialize_variables(app_t *app)
 	app->fov = 90;
 	app->should_use_orthographic = false;
 
-	app->camera.position.x = 0;
-	app->camera.position.y = 0;
-	app->camera.position.z = 10;
-	app->camera.rotation.x = 0;
-	app->camera.rotation.y = 0;
-
 	app->is_entering_free_flight = false;
 
-	app->model_info.yaw = 0;
 	app->model_info.should_rotate = true;
 	app->model_info.position = (vec3_t){ .x = 0, .y = 0, .z = 0 };
 
@@ -295,6 +288,23 @@ static int initialize_texture_map(const app_t *app, const texture_t *texture)
 	return 0;
 }
 
+// horizontal_fov in radians
+static void set_camera_position(vec3_t *camera_position,
+		const bounding_box_t *model_bounding_box, GLfloat horizontal_fov, GLfloat aspect_ratio)
+{
+	GLfloat projection_plane_distance = aspect_ratio / tan(horizontal_fov / 2);
+
+	GLfloat rightmost = sqrtf(powf(model_bounding_box->x.max, 2)
+			+ powf(model_bounding_box->z.max, 2));
+	GLfloat upmost = sqrtf(powf(rightmost, 2) + powf(model_bounding_box->y.max, 2));
+
+	GLfloat up = upmost * projection_plane_distance;
+	GLfloat right = rightmost * projection_plane_distance / aspect_ratio;
+
+	camera_position->z = fmaxf(up, right);
+	camera_position->z += rightmost;
+}
+
 int initialization(app_t *app, const char *object_path, const char *texture_path)
 {
 	initialize_variables(app);
@@ -361,5 +371,8 @@ int initialization(app_t *app, const char *object_path, const char *texture_path
 		return -1;
 	}
 	free(texture.data);
+
+	set_camera_position(&app->camera.position, &app->model_info.bounding_box,
+			radians(app->fov), (GLfloat)app->window.width / (GLfloat)app->window.height);
 	return 0;
 }
