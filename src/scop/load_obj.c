@@ -5,6 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <err.h>
+#include <assert.h>
 
 #include "scop/app.h"
 #include "scop/initialization.h"
@@ -19,7 +20,7 @@ static void count_model_datas_vertex(model_t *model, char *data)
 	model->vertices_count++;
 }
 
-static int count_model_datas_face(model_t *model, char *data)
+static int count_model_datas_face(model_t *model, GLuint *polygons_count, char *data)
 {
 	GLuint count = 0;
 
@@ -36,13 +37,15 @@ static int count_model_datas_face(model_t *model, char *data)
 		return -1;
 	}
 	model->triangles_count += count - 2;
+	*polygons_count += 1;
 	return 0;
 }
 
-static int count_model_datas(model_t *model, char **lines)
+static int count_model_datas(model_t *model, GLuint *polygons_count, char **lines)
 {
 	model->vertices_count = 0;
 	model->triangles_count = 0;
+	*polygons_count = 0;
 
 	while (*lines != NULL) {
 		char keyword[3];
@@ -55,7 +58,7 @@ static int count_model_datas(model_t *model, char **lines)
 		if (strcmp(keyword, "v") == 0) {
 			count_model_datas_vertex(model, *lines + n);
 		} else if (strcmp(keyword, "f") == 0) {
-			if (count_model_datas_face(model, *lines + n) == -1) {
+			if (count_model_datas_face(model, polygons_count, *lines + n) == -1) {
 				return -1;
 			}
 		}
@@ -80,82 +83,124 @@ static int fill_model_datas_vertex(vec3_t **vertices_it, char *data)
 	return 0;
 }
 
-static int fill_model_datas_face(triangle_t **triangles_it, char *data, GLuint vertex_count)
+static face_format_t get_face_format(char *data)
 {
-	face_format_t face_format;
-	int n;
-	GLuint scanf_uint;
+	int n = 0;
 
-	if (sscanf(data, "%u %u %u %n", &(**triangles_it)[0], &(**triangles_it)[1],
-			&(**triangles_it)[2], &n) == 3) {
-		face_format = V;
-	} else if (sscanf(data, "%u/%u %u/%u %u/%u %n", &(**triangles_it)[0], &scanf_uint,
-			&(**triangles_it)[1], &scanf_uint, &(**triangles_it)[2], &scanf_uint, &n) == 6) {
-		face_format = V_VT;
-	} else if (sscanf(data, "%u//%u %u//%u %u//%u %n", &(**triangles_it)[0], &scanf_uint,
-			&(**triangles_it)[1], &scanf_uint, &(**triangles_it)[2], &scanf_uint, &n) == 6) {
-		face_format = V_VN;
-	} else if (sscanf(data, "%u/%u/%u %u/%u/%u %u/%u/%u %n", &(**triangles_it)[0], &scanf_uint,
-			&scanf_uint, &(**triangles_it)[1], &scanf_uint, &scanf_uint, &(**triangles_it)[2],
-			&scanf_uint, &scanf_uint, &n) == 9) {
-		face_format = V_VT_VN;
-	} else {
-		return -1;
+	sscanf(data, "%*u %*u %*u %n", &n);
+	if (n != 0) {
+		return V;
 	}
-	if ((**triangles_it)[0] > vertex_count || (**triangles_it)[1] > vertex_count
-		|| (**triangles_it)[2] > vertex_count) {
-		return -1;
+	sscanf(data, "%*u/%*u %*u/%*u %*u/%*u %n", &n);
+	if (n != 0) {
+		return V_VT;
 	}
-	(**triangles_it)[0]--;
-	(**triangles_it)[1]--;
-	(**triangles_it)[2]--;
-	data += n;
-	*triangles_it += 1;
+	sscanf(data, "%*u//%*u %*u//%*u %*u//%*u %n", &n);
+	if (n != 0) {
+		return V_VN;
+	}
+	sscanf(data, "%*u/%*u/%*u %*u/%*u/%*u %*u/%*u/%*u %n", &n);
+	if (n != 0) {
+		return V_VT_VN;
+	}
+	return ERROR;
+}
 
-	while (*data != '\0') {
-		(**triangles_it)[0] = ((*triangles_it)[-1])[0];
-		(**triangles_it)[1] = ((*triangles_it)[-1])[2];
-		if (face_format == V) {
-			if (sscanf(data, "%u %n", &(**triangles_it)[2], &n) != 1) {
-				return -1;
-			}
-		} else if (true) {}
-		switch (face_format) {
-			case V:
-				if (sscanf(data, "%u %n", &(**triangles_it)[2], &n) != 1) {
-					return -1;
-				}
-				break;
-			case V_VT:
-				if (sscanf(data, "%u/%u %n", &(**triangles_it)[2], &scanf_uint, &n) != 2) {
-					return -1;
-				}
-				break;
-			case V_VN:
-				if (sscanf(data, "%u//%u %n", &(**triangles_it)[2], &scanf_uint, &n) != 2) {
-					return -1;
-				}
-				break;
-			case V_VT_VN:
-				if (sscanf(data, "%u/%u/%u %n", &(**triangles_it)[2], &scanf_uint, &scanf_uint, &n) != 3) {
-					return -1;
-				}
-				break;
-		}
-		if ((**triangles_it)[2] > vertex_count) {
+static GLuint count_face_vertices(char *data, face_format_t face_format)
+{
+	assert(data != NULL);
+
+	const char *format;
+	switch (face_format) {
+		case V:
+			format = "%*u %n";
+			break;
+		case V_VT:
+			format = "%*u/%*u %n";
+			break;
+		case V_VN:
+			format = "%*u//%*u %n";
+			break;
+		case V_VT_VN:
+			format = "%*u/%*u/%*u %n";
+			break;
+		default:
+			assert(false);
+	}
+
+	int count = 0;
+	int n = 0;
+	sscanf(data, format, &n);
+	while (n != 0) {
+		count++;
+		data += n;
+		n = 0;
+		sscanf(data, format, &n);
+	}
+	return count;
+}
+
+static int fill_face_vertices(polygon_t *polygon, char *data, face_format_t face_format,
+		GLuint model_vertices_count)
+{
+	assert(polygon != NULL);
+	assert(data != NULL);
+
+	const char *format;
+	switch (face_format) {
+		case V:
+			format = "%u %n";
+			break;
+		case V_VT:
+			format = "%u/%*u %n";
+			break;
+		case V_VN:
+			format = "%u//%*u %n";
+			break;
+		case V_VT_VN:
+			format = "%u/%*u/%*u %n";
+			break;
+		default:
+			assert(false);
+	}
+
+	GLuint *polygon_vertices_index_it = polygon->vertices_index;
+	for (GLuint i = 0; i < polygon->vertices_count; i++) {
+		int n = 0;
+		sscanf(data, format, polygon_vertices_index_it, &n);
+		if (*polygon_vertices_index_it > model_vertices_count) {
 			return -1;
 		}
-		(**triangles_it)[2]--;
+		*polygon_vertices_index_it -= 1;
 		data += n;
-		*triangles_it += 1;
+		polygon_vertices_index_it++;
 	}
 	return 0;
 }
 
-static int fill_model_datas(model_t *model, char **lines)
+static int fill_model_datas_face(polygon_t **polygons_it, char *data, GLuint vertices_count)
+{
+	face_format_t face_format = get_face_format(data);
+	if (face_format == ERROR) {
+		return -1;
+	}
+	(*polygons_it)->vertices_count = count_face_vertices(data, face_format);
+	(*polygons_it)->vertices_index = malloc((*polygons_it)->vertices_count * sizeof(GLuint));
+	if ((*polygons_it)->vertices_index == NULL) {
+		return -1;
+	}
+	if (fill_face_vertices(*polygons_it, data, face_format, vertices_count) == -1) {
+		free((*polygons_it)->vertices_index);
+		return -1;
+	}
+	*polygons_it += 1;
+	return 0;
+}
+
+static int fill_model_datas(model_t *model, polygon_t *polygons, char **lines)
 {
 	vec3_t *vertices_it = model->vertices_position;
-	triangle_t *triangles_it = model->triangles;
+	polygon_t *polygons_it = polygons;
 
 	while (*lines != NULL) {
 		char keyword[3];
@@ -166,10 +211,18 @@ static int fill_model_datas(model_t *model, char **lines)
 		}
 		if (strcmp(keyword, "v") == 0) {
 			if (fill_model_datas_vertex(&vertices_it, *lines + n) == -1) {
+				while (polygons < polygons_it) {
+					free(polygons->vertices_index);
+					polygons++;
+				}
 				return -1;
 			}
 		} else if (strcmp(keyword, "f") == 0) {
-			if (fill_model_datas_face(&triangles_it, *lines + n, model->vertices_count) == -1) {
+			if (fill_model_datas_face(&polygons_it, *lines + n, model->vertices_count) == -1) {
+				while (polygons < polygons_it) {
+					free(polygons->vertices_index);
+					polygons++;
+				}
 				return -1;
 			}
 		}
@@ -178,12 +231,38 @@ static int fill_model_datas(model_t *model, char **lines)
 	return 0;
 }
 
-static void  set_bounding_box_axes(model_t *model)
+static void triangulate_polygon(polygon_t *polygon, triangle_t **triangles_it, const vec3_t *vertices_position)
+{
+	(**triangles_it)[0] = polygon->vertices_index[0];
+	(**triangles_it)[1] = polygon->vertices_index[1];
+	(**triangles_it)[2] = polygon->vertices_index[2];
+	*triangles_it += 1;
+
+	for (GLuint i = 3; i < polygon->vertices_count; i++) {
+		(**triangles_it)[0] = (*triangles_it)[-1][0];
+		(**triangles_it)[1] = (*triangles_it)[-1][2];
+		(**triangles_it)[2] = polygon->vertices_index[i];
+		*triangles_it += 1;
+	}
+}
+
+static void triangulate_polygons(polygon_t *polygons_it, GLuint polygons_count, model_t *model)
+{
+	triangle_t *triangles_it = model->triangles;
+	while (polygons_count > 0) {
+		triangulate_polygon(polygons_it, &triangles_it, model->vertices_position);
+		free(polygons_it->vertices_index);
+		polygons_it++;
+		polygons_count--;
+	}
+}
+
+static void set_bounding_box_axes(model_t *model)
 {
 	model->bounding_box = (bounding_box_t){
 		.x.min = model->vertices_position->x, .x.max = model->vertices_position->x,
-		.y.min = model->vertices_position->y, .y.max = model->vertices_position->y,
-		.z.min = model->vertices_position->z, .z.max = model->vertices_position->z,
+			.y.min = model->vertices_position->y, .y.max = model->vertices_position->y,
+			.z.min = model->vertices_position->z, .z.max = model->vertices_position->z,
 	};
 
 	vec3_t *vertices_it = model->vertices_position + 1;
@@ -210,7 +289,7 @@ static void  set_bounding_box_axes(model_t *model)
 	}
 }
 
-static void  center_bounding_box(model_t *model)
+static void center_bounding_box(model_t *model)
 {
 	set_bounding_box_axes(model);
 
@@ -267,29 +346,36 @@ int load_obj(model_t *model, const char *path)
 		return -1;
 	}
 
-	if (count_model_datas(model, lines) == -1) {
+	GLuint polygons_count;
+	polygon_t *polygons;
+	if (count_model_datas(model, &polygons_count, lines) == -1) {
 		fprintf(stderr, "Object '%s' has invalid lines.\n", path);
 		free_strs(lines);
 		return -1;
 	}
 	model->vertices_position = malloc(model->vertices_count * sizeof(vec3_t));
 	model->triangles = malloc(model->triangles_count * sizeof(triangle_t));
+	polygons = malloc(polygons_count * sizeof(polygon_t));
 	if (model->vertices_position == NULL || model->triangles == NULL) {
 		err(1, "malloc");
 		free(model->vertices_position);
 		free(model->triangles);
+		free(polygons);
 		free_strs(lines);
 		return -1;
 	}
-	if (fill_model_datas(model, lines) == -1) {
+	if (fill_model_datas(model, polygons, lines) == -1) {
 		fprintf(stderr, "Object '%s' has invalid lines.\n", path);
 		free(model->vertices_position);
 		free(model->triangles);
+		free(polygons);
 		free_strs(lines);
 		return -1;
 	}
 	free_strs(lines);
 
+	triangulate_polygons(polygons, polygons_count, model);
+	free(polygons);
 	center_bounding_box(model);
 	return 0;
 }
