@@ -112,6 +112,40 @@ static int initialize_glfw(app_t *app)
 	return 0;
 }
 
+static int initialize_gl_triangles_program(triangles_program_t *triangles_program)
+{
+	triangles_program->id = create_program("./shaders/triangles.vert", NULL,
+			"./shaders/triangles.frag");
+	if (triangles_program->id == 0) {
+		return -1;
+	}
+
+	triangles_program->projection_view_model
+		= glGetUniformLocation(triangles_program->id, "projection_view_model");
+	assert(triangles_program->projection_view_model != -1);
+	triangles_program->texture_portion
+		= glGetUniformLocation(triangles_program->id, "texture_portion");
+	assert(triangles_program->texture_portion != -1);
+	return 0;
+}
+
+static int initialize_gl_normals_program(normals_program_t *normals_program)
+{
+	normals_program->id = create_program("./shaders/normals.vert", "./shaders/normals.geom",
+			"./shaders/normals.frag");
+	if (normals_program->id == 0) {
+		return -1;
+	}
+
+	normals_program->view_model
+		= glGetUniformLocation(normals_program->id, "view_model");
+	assert(normals_program->view_model != -1);
+	normals_program->projection
+		= glGetUniformLocation(normals_program->id, "projection");
+	assert(normals_program->projection != -1);
+	return 0;
+}
+
 static int initialize_gl(app_t *app)
 {
 	if (gladLoadGLLoader((GLADloadproc)&glfwGetProcAddress) == 0) {
@@ -130,24 +164,13 @@ static int initialize_gl(app_t *app)
 	glPointSize(2);
 	assert(glGetError() == GL_NO_ERROR);
 
-	app->opengl.program = create_program("./shaders/main.vert", "./shaders/main.frag");
-	if (app->opengl.program == 0) {
-		glfwTerminate();
+	if (initialize_gl_triangles_program(&app->opengl.triangles_program) == -1) {
 		return -1;
 	}
-	glUseProgram(app->opengl.program);
-	GLenum error = glGetError();
-	if (error == GL_INVALID_OPERATION) {
-		fprintf(stderr, "glUseProgram invalid operation error\n");
-		glDeleteProgram(app->opengl.program);
+	if (initialize_gl_normals_program(&app->opengl.normals_program) == -1) {
 		return -1;
 	}
-	assert(error == GL_NO_ERROR);
 
-	app->opengl.uniforms.projection_view_model = glGetUniformLocation(app->opengl.program, "projection_view_model");
-	assert(app->opengl.uniforms.projection_view_model != -1);
-	app->opengl.uniforms.texture_portion = glGetUniformLocation(app->opengl.program, "texture_portion");
-	assert(app->opengl.uniforms.texture_portion != -1);
 	return 0;
 }
 
@@ -197,14 +220,17 @@ static int initialize_array_buffer_data(array_buffer_data_t *array_buffer_data,
 		vertex_it[0].color = color;
 		vertex_it[0].texture_coordinates = get_texture_coordinates(
 				&vertex_it[0].position, &normal, &model->bounding_box, texture_aspect_ratio);
+		vertex_it[0].normal = normal;
 		vertex_it[1].position = model->vertices_position[(*triangle_it)[1]];
 		vertex_it[1].color = color;
 		vertex_it[1].texture_coordinates = get_texture_coordinates(
 				&vertex_it[1].position, &normal, &model->bounding_box, texture_aspect_ratio);
+		vertex_it[1].normal = normal;
 		vertex_it[2].position = model->vertices_position[(*triangle_it)[2]];
 		vertex_it[2].color = color;
 		vertex_it[2].texture_coordinates = get_texture_coordinates(
 				&vertex_it[2].position, &normal, &model->bounding_box, texture_aspect_ratio);
+		vertex_it[2].normal = normal;
 
 		vertex_it += 3;
 		triangle_it++;
@@ -249,6 +275,11 @@ static void initialize_vertex_array()
 	assert(glGetError() == GL_NO_ERROR);
 	glEnableVertexAttribArray(2);
 	assert(glGetError() == GL_NO_ERROR);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t),
+			(const GLvoid *)offsetof(vertex_t, normal));
+	assert(glGetError() == GL_NO_ERROR);
+	glEnableVertexAttribArray(3);
+	assert(glGetError() == GL_NO_ERROR);
 }
 
 static int initialize_texture_map(const app_t *app, const texture_t *texture)
@@ -278,13 +309,20 @@ static int initialize_texture_map(const app_t *app, const texture_t *texture)
 			fprintf(stderr, "Texture too large.\n");
 			return -1;
 		}
-		assert(false);
 	}
 	assert(error == GL_NO_ERROR);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	assert(glGetError() == GL_NO_ERROR);
-	GLint sampler_uniform = glGetUniformLocation(app->opengl.program, "sampler");
+
+	GLint sampler_uniform = glGetUniformLocation(app->opengl.triangles_program.id, "sampler");
 	assert(sampler_uniform != -1);
+	glUseProgram(app->opengl.triangles_program.id);
+	error = glGetError();
+	if (error == GL_INVALID_OPERATION) {
+		fprintf(stderr, "glUseProgram invalid operation error\n");
+		return -1;
+	}
+	assert(error == GL_NO_ERROR);
 	glUniform1i(sampler_uniform, 0);
 	assert(glGetError() == GL_NO_ERROR);
 	return 0;
@@ -320,7 +358,7 @@ int initialization(app_t *app, const char *object_path, const char *texture_path
 
 	model_t model;
 	if (load_obj(&model, object_path) == -1) {
-		glDeleteProgram(app->opengl.program);
+		glDeleteProgram(app->opengl.triangles_program.id);
 		glfwTerminate();
 		return -1;
 	}
@@ -332,7 +370,7 @@ int initialization(app_t *app, const char *object_path, const char *texture_path
 	if (texture.data == NULL) {
 		free(model.vertices_position);
 		free(model.triangles);
-		glDeleteProgram(app->opengl.program);
+		glDeleteProgram(app->opengl.triangles_program.id);
 		glfwTerminate();
 		return -1;
 	}
@@ -342,7 +380,7 @@ int initialization(app_t *app, const char *object_path, const char *texture_path
 		free(model.vertices_position);
 		free(model.triangles);
 		free(texture.data);
-		glDeleteProgram(app->opengl.program);
+		glDeleteProgram(app->opengl.triangles_program.id);
 		glfwTerminate();
 		return -1;
 	}

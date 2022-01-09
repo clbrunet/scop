@@ -6,6 +6,6 @@
 #define NEAR_PLANE 0.01
 #define FAR_PLANE 1000
 
-void update(app_t *app);
+int update(app_t *app);
 
 #endif

@@ -62,7 +62,9 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		update(&app);
+		if (update(&app) == -1) {
+			break;
+		}
 
 		while (glfwGetTime() - last_swap_time < (GLdouble)1 / 60) {
 			usleep(100);

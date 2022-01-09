@@ -13,6 +13,7 @@ typedef struct vertex_s
 	vec3_t position;
 	vec3_t color;
 	vec2_t texture_coordinates;
+	vec3_t normal;
 }	vertex_t;
 
 typedef struct array_buffer_data_s

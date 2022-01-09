@@ -24,12 +24,6 @@ typedef struct update_time_s
 	GLdouble delta;
 }	update_time_t;
 
-typedef struct uniforms_s
-{
-	GLint projection_view_model;
-	GLint texture_portion;
-}	uniforms_t;
-
 typedef struct range_s
 {
 	GLfloat min;
@@ -57,13 +51,27 @@ typedef struct window_s
 	GLsizei height;
 }	window_t;
 
+typedef struct normals_program_s
+{
+	GLuint id;
+	GLint view_model;
+	GLint projection;
+}	normals_program_t;
+
+typedef struct triangles_program_s
+{
+	GLuint id;
+	GLint projection_view_model;
+	GLint texture_portion;
+}	triangles_program_t;
+
 typedef struct opengl_s
 {
-	GLuint program;
+	normals_program_t normals_program;
+	triangles_program_t triangles_program;
 	GLuint vertex_array;
 	GLuint vertex_buffer;
 	GLuint texture_map;
-	uniforms_t uniforms;
 }	opengl_t;
 
 typedef struct model_info_s
@@ -89,6 +97,7 @@ typedef struct app_s
 	update_time_t time;
 	GLfloat fov;
 	bool should_use_orthographic;
+	bool should_display_normals;
 	camera_t camera;
 	bool is_entering_free_flight;
 	vec2_double_t cursor_last_pos;

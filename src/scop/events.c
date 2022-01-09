@@ -54,6 +54,14 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 				}
 				break;
 
+			case GLFW_KEY_N:
+				if (app->should_display_normals == false) {
+					app->should_display_normals = true;
+				} else {
+					app->should_display_normals = false;
+				}
+				break;
+
 			case GLFW_KEY_T:
 				if (app->texture_animation_phase == TO_COLOR) {
 					app->texture_animation_phase = TO_TEXTURE;

@@ -64,22 +64,30 @@ static int link_program(GLuint program)
 		}
 		glGetProgramInfoLog(program, info_log_length, NULL, info_log);
 		assert(glGetError() == GL_NO_ERROR);
-		fprintf(stderr, "Program link error\n%s", info_log);
+		fprintf(stderr, "Program link error :\n%s", info_log);
 		free(info_log);
 		return -1;
 	}
 	return 0;
 }
 
-GLuint create_program(const char *vertex_shader_path, const char *fragment_shader_path)
+GLuint create_program(const char *vertex_shader_path, const char *geometry_shader_path,
+		const char *fragment_shader_path)
 {
 	assert(vertex_shader_path != NULL);
 	assert(fragment_shader_path != NULL);
 
 	GLuint vertex_shader = create_shader(GL_VERTEX_SHADER, vertex_shader_path);
+	GLuint geometry_shader = 0;
+	if (geometry_shader_path != NULL) {
+		geometry_shader = create_shader(GL_GEOMETRY_SHADER, geometry_shader_path);
+	}
 	GLuint fragment_shader = create_shader(GL_FRAGMENT_SHADER, fragment_shader_path);
-	if (vertex_shader == 0 || fragment_shader == 0) {
+	if (vertex_shader == 0|| (geometry_shader_path != NULL && geometry_shader == 0)
+		|| fragment_shader == 0) {
 		glDeleteShader(vertex_shader);
+		assert(glGetError() == GL_NO_ERROR);
+		glDeleteShader(geometry_shader);
 		assert(glGetError() == GL_NO_ERROR);
 		glDeleteShader(fragment_shader);
 		assert(glGetError() == GL_NO_ERROR);
@@ -90,16 +98,36 @@ GLuint create_program(const char *vertex_shader_path, const char *fragment_shade
 	assert(program != 0);
 	glAttachShader(program, vertex_shader);
 	assert(glGetError() == GL_NO_ERROR);
+	if (geometry_shader_path != NULL) {
+		glAttachShader(program, geometry_shader);
+		assert(glGetError() == GL_NO_ERROR);
+	}
 	glAttachShader(program, fragment_shader);
 	assert(glGetError() == GL_NO_ERROR);
 
-	link_program(program);
+	if (link_program(program) == -1) {
+		glDeleteShader(vertex_shader);
+		assert(glGetError() == GL_NO_ERROR);
+		glDeleteShader(geometry_shader);
+		assert(glGetError() == GL_NO_ERROR);
+		glDeleteShader(fragment_shader);
+		assert(glGetError() == GL_NO_ERROR);
+		glDeleteProgram(program);
+		assert(glGetError() == GL_NO_ERROR);
+		return 0;
+	}
 
 	glDetachShader(program, vertex_shader);
 	assert(glGetError() == GL_NO_ERROR);
+	if (geometry_shader_path != NULL) {
+		glDetachShader(program, geometry_shader);
+		assert(glGetError() == GL_NO_ERROR);
+	}
 	glDetachShader(program, fragment_shader);
 	assert(glGetError() == GL_NO_ERROR);
 	glDeleteShader(vertex_shader);
+	assert(glGetError() == GL_NO_ERROR);
+	glDeleteShader(geometry_shader);
 	assert(glGetError() == GL_NO_ERROR);
 	glDeleteShader(fragment_shader);
 	assert(glGetError() == GL_NO_ERROR);

@@ -3,6 +3,7 @@
 
 #include "glad/glad.h"
 
-GLuint create_program(const char *vertex_shader_path, const char *fragment_shader_path);
+GLuint create_program(const char *vertex_shader_path, const char *geometry_shader_path,
+		const char *fragment_shader_path);
 
 #endif

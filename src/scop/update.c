@@ -164,15 +164,8 @@ static void set_view_mat4(app_t *app, mat4_t view_mat4)
 	mat4_multiplication(rotation_mat4, translation_mat4, view_mat4);
 }
 
-static void set_projection_view_model_mat4(app_t *app, mat4_t projection_view_model_mat4)
+static void set_projection_mat4(app_t *app, mat4_t projection_mat4)
 {
-	mat4_t model_mat4;
-	set_model_mat4(app, model_mat4);
-
-	mat4_t view_mat4;
-	set_view_mat4(app, view_mat4);
-
-	mat4_t projection_mat4;
 	GLfloat aspect_ratio = (GLfloat)app->window.width / (GLfloat)app->window.height;
 	if (app->should_use_orthographic == true) {
 		set_orthographic_projection_mat4(projection_mat4,
@@ -184,14 +177,82 @@ static void set_projection_view_model_mat4(app_t *app, mat4_t projection_view_mo
 		set_perspective_projection_mat4(projection_mat4, radians(app->fov),
 				aspect_ratio, NEAR_PLANE, FAR_PLANE);
 	}
+}
 
-	mat4_t view_model_mat4;
+static void set_view_model_mat4(app_t *app, mat4_t view_model_mat4)
+{
+	mat4_t model_mat4;
+	set_model_mat4(app, model_mat4);
+
+	mat4_t view_mat4;
+	set_view_mat4(app, view_mat4);
+
 	mat4_multiplication(view_mat4, model_mat4, view_model_mat4);
+}
+
+static void set_projection_view_model_mat4(app_t *app, mat4_t projection_view_model_mat4)
+{
+	mat4_t view_model_mat4;
+	set_view_model_mat4(app, view_model_mat4);
+
+	mat4_t projection_mat4;
+	set_projection_mat4(app, projection_mat4);
 
 	mat4_multiplication(projection_mat4, view_model_mat4, projection_view_model_mat4);
 }
 
-void update(app_t *app)
+static int draw_normals(app_t *app)
+{
+	glUseProgram(app->opengl.normals_program.id);
+	GLenum error = glGetError();
+	if (error == GL_INVALID_OPERATION) {
+		fprintf(stderr, "glUseProgram invalid operation error\n");
+		return -1;
+	}
+	assert(error == GL_NO_ERROR);
+
+	mat4_t view_model_mat4;
+	set_view_model_mat4(app, view_model_mat4);
+	mat4_t projection_mat4;
+	set_projection_mat4(app, projection_mat4);
+
+	glUniformMatrix4fv(app->opengl.normals_program.view_model, 1, GL_TRUE,
+			(const GLfloat *)view_model_mat4);
+	assert(glGetError() == GL_NO_ERROR);
+	glUniformMatrix4fv(app->opengl.normals_program.projection, 1, GL_TRUE,
+			(const GLfloat *)projection_mat4);
+	assert(glGetError() == GL_NO_ERROR);
+
+	glDrawArrays(GL_TRIANGLES, 0, app->model_info.triangles_count * 3);
+	assert(glGetError() == GL_NO_ERROR);
+	return 0;
+}
+
+static int draw_triangles(app_t *app)
+{
+	mat4_t projection_view_model_mat4;
+	set_projection_view_model_mat4(app, projection_view_model_mat4);
+
+	glUseProgram(app->opengl.triangles_program.id);
+	GLenum error = glGetError();
+	if (error == GL_INVALID_OPERATION) {
+		fprintf(stderr, "glUseProgram invalid operation error\n");
+		return -1;
+	}
+	assert(error == GL_NO_ERROR);
+
+	glUniformMatrix4fv(app->opengl.triangles_program.projection_view_model, 1, GL_TRUE,
+			(const GLfloat *)projection_view_model_mat4);
+	assert(glGetError() == GL_NO_ERROR);
+	glUniform1f(app->opengl.triangles_program.texture_portion, app->texture_portion);
+	assert(glGetError() == GL_NO_ERROR);
+
+	glDrawArrays(GL_TRIANGLES, 0, app->model_info.triangles_count * 3);
+	assert(glGetError() == GL_NO_ERROR);
+	return 0;
+}
+
+int update(app_t *app)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	assert(glGetError() == GL_NO_ERROR);
@@ -199,15 +260,13 @@ void update(app_t *app)
 	process_inputs(app);
 	process_animations(app);
 
-	mat4_t projection_view_model_mat4;
-	set_projection_view_model_mat4(app, projection_view_model_mat4);
-
-	glUniformMatrix4fv(app->opengl.uniforms.projection_view_model, 1, GL_TRUE,
-			(const GLfloat *)projection_view_model_mat4);
-	assert(glGetError() == GL_NO_ERROR);
-	glUniform1f(app->opengl.uniforms.texture_portion, app->texture_portion);
-	assert(glGetError() == GL_NO_ERROR);
-
-	glDrawArrays(GL_TRIANGLES, 0, app->model_info.triangles_count * 3);
-	assert(glGetError() == GL_NO_ERROR);
+	if (app->should_display_normals) {
+		if (draw_normals(app) == -1) {
+			return -1;
+		}
+	}
+	if (draw_triangles(app) == -1) {
+		return -1;
+	}
+	return 0;
 }
