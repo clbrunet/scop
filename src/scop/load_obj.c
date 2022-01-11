@@ -270,7 +270,7 @@ static void set_bounding_box_axes(model_t *model)
 		if (vertices_it->x < model->bounding_box.x.min) {
 			model->bounding_box.x.min = vertices_it->x;
 		}
-		if (model->bounding_box.x.max < vertices_it->y) {
+		if (model->bounding_box.x.max < vertices_it->x) {
 			model->bounding_box.x.max = vertices_it->x;
 		}
 		if (vertices_it->y < model->bounding_box.y.min) {
