@@ -27,6 +27,7 @@ static void initialize_variables(app_t *app)
 	app->window.height = 720;
 
 	app->fov = 90;
+	app->polygon_mode = GL_FILL;
 	app->should_use_orthographic = false;
 
 	app->camera.speed = 8;

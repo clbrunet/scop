@@ -96,6 +96,7 @@ typedef struct app_s
 	opengl_t opengl;
 	update_time_t time;
 	GLfloat fov;
+	GLenum polygon_mode;
 	bool should_use_orthographic;
 	bool should_display_normals;
 	camera_t camera;
