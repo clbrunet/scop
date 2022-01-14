@@ -34,7 +34,6 @@ static void initialize_variables(app_t *app)
 
 	app->camera.speed = 8;
 
-	app->light.position = (vec3_t){ .x = 2, .y = 2, .z = 3, }; // TODO better light placement
 	app->light.ambient = (vec3_t){ .r = 0.1, .g = 0.1, .b = 0.1, };
 	app->light.diffuse = (vec3_t){ .r = 0.9, .g = 0.9, .b = 0.9, };
 
@@ -491,5 +490,10 @@ int initialization(app_t *app, const char *object_path, const char *texture_path
 
 	set_camera_position(&app->camera.position, &app->model_info.bounding_box,
 			radians(app->fov), (GLfloat)app->window.width / (GLfloat)app->window.height);
+	app->light.position = (vec3_t){
+		.x = app->model_info.bounding_box.max_distance,
+		.y = app->model_info.bounding_box.max_distance,
+		.z = app->camera.position.z,
+	};
 	return 0;
 }
