@@ -9,10 +9,12 @@ typedef struct vec2_s
 {
 	union {
 		struct {
-			GLfloat x, y;
+			GLfloat x;
+			GLfloat y;
 		};
 		struct {
-			GLfloat u, v;
+			GLfloat u;
+			GLfloat v;
 		};
 		GLfloat array[2];
 	};

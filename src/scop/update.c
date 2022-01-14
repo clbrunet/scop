@@ -228,12 +228,9 @@ static int draw_normals(app_t *app)
 	return 0;
 }
 
-static int draw_triangles(app_t *app)
+static int draw_model_lighting(app_t *app)
 {
-	mat4_t projection_view_model_mat4;
-	set_projection_view_model_mat4(app, projection_view_model_mat4);
-
-	glUseProgram(app->opengl.triangles_program.id);
+	glUseProgram(app->opengl.model_lighting_program.id);
 	GLenum error = glGetError();
 	if (error == GL_INVALID_OPERATION) {
 		fprintf(stderr, "glUseProgram invalid operation error\n");
@@ -241,10 +238,49 @@ static int draw_triangles(app_t *app)
 	}
 	assert(error == GL_NO_ERROR);
 
-	glUniformMatrix4fv(app->opengl.triangles_program.projection_view_model, 1, GL_TRUE,
+	mat4_t view_mat4;
+	set_view_mat4(app, view_mat4);
+	mat4_t view_model_mat4;
+	set_view_model_mat4(app, view_model_mat4);
+	mat4_t projection_view_model_mat4;
+	set_projection_view_model_mat4(app, projection_view_model_mat4);
+
+	vec4_t light_position = mat4_vec4_multiplication(view_mat4,
+			vec3_to_vec4(&app->light.position));
+
+	glUniformMatrix4fv(app->opengl.model_lighting_program.view_model, 1, GL_TRUE,
+			(const GLfloat *)view_model_mat4);
+	assert(glGetError() == GL_NO_ERROR);
+	glUniformMatrix4fv(app->opengl.model_lighting_program.projection_view_model, 1, GL_TRUE,
 			(const GLfloat *)projection_view_model_mat4);
 	assert(glGetError() == GL_NO_ERROR);
-	glUniform1f(app->opengl.triangles_program.texture_portion, app->texture_portion);
+	glUniform3fv(app->opengl.model_lighting_program.light_position, 1, light_position.array);
+	assert(glGetError() == GL_NO_ERROR);
+	glUniform1f(app->opengl.model_lighting_program.texture_portion, app->texture_portion);
+	assert(glGetError() == GL_NO_ERROR);
+
+	glDrawArrays(GL_TRIANGLES, 0, app->model_info.triangles_count * 3);
+	assert(glGetError() == GL_NO_ERROR);
+	return 0;
+}
+
+static int draw_model(app_t *app)
+{
+	glUseProgram(app->opengl.model_program.id);
+	GLenum error = glGetError();
+	if (error == GL_INVALID_OPERATION) {
+		fprintf(stderr, "glUseProgram invalid operation error\n");
+		return -1;
+	}
+	assert(error == GL_NO_ERROR);
+
+	mat4_t projection_view_model_mat4;
+	set_projection_view_model_mat4(app, projection_view_model_mat4);
+
+	glUniformMatrix4fv(app->opengl.model_program.projection_view_model, 1, GL_TRUE,
+			(const GLfloat *)projection_view_model_mat4);
+	assert(glGetError() == GL_NO_ERROR);
+	glUniform1f(app->opengl.model_program.texture_portion, app->texture_portion);
 	assert(glGetError() == GL_NO_ERROR);
 
 	glDrawArrays(GL_TRIANGLES, 0, app->model_info.triangles_count * 3);
@@ -265,8 +301,14 @@ int update(app_t *app)
 			return -1;
 		}
 	}
-	if (draw_triangles(app) == -1) {
-		return -1;
+	if (app->should_use_lighting) {
+		if (draw_model_lighting(app) == -1) {
+			return -1;
+		}
+	} else {
+		if (draw_model(app) == -1) {
+			return -1;
+		}
 	}
 	return 0;
 }

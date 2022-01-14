@@ -8,10 +8,21 @@ typedef struct vec3_s vec3_t;
 typedef GLfloat mat4x1_t[4][1];
 
 typedef struct vec4_s {
-	GLfloat x;
-	GLfloat y;
-	GLfloat z;
-	GLfloat w;
+	union {
+		struct {
+			GLfloat x;
+			GLfloat y;
+			GLfloat z;
+			GLfloat w;
+		};
+		struct {
+			GLfloat r;
+			GLfloat g;
+			GLfloat b;
+			GLfloat a;
+		};
+		GLfloat array[4];
+	};
 }	vec4_t;
 
 vec4_t vec4(GLfloat x, GLfloat y, GLfloat z, GLfloat w);

@@ -8,7 +8,9 @@ void destruction(app_t *app)
 	glDeleteBuffers(1, &app->opengl.vertex_buffer);
 	glDeleteTextures(1, &app->opengl.texture_map);
 
-	glDeleteProgram(app->opengl.triangles_program.id);
+	glDeleteProgram(app->opengl.model_program.id);
+	glDeleteProgram(app->opengl.normals_program.id);
+	glDeleteProgram(app->opengl.model_lighting_program.id);
 
 	glfwTerminate();
 }

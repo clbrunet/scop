@@ -58,17 +58,27 @@ typedef struct normals_program_s
 	GLint projection;
 }	normals_program_t;
 
-typedef struct triangles_program_s
+typedef struct model_program_s
 {
 	GLuint id;
 	GLint projection_view_model;
 	GLint texture_portion;
-}	triangles_program_t;
+}	model_program_t;
+
+typedef struct model_lighting_program_s
+{
+	GLuint id;
+	GLint view_model;
+	GLint projection_view_model;
+	GLint texture_portion;
+	GLint light_position;
+}	model_lighting_program_t;
 
 typedef struct opengl_s
 {
 	normals_program_t normals_program;
-	triangles_program_t triangles_program;
+	model_program_t model_program;
+	model_lighting_program_t model_lighting_program;
 	GLuint vertex_array;
 	GLuint vertex_buffer;
 	GLuint texture_map;
@@ -90,6 +100,13 @@ typedef enum axis_e
 	Z,
 }	axis_t;
 
+typedef struct light_s
+{
+	vec3_t position;
+	vec3_t ambient;
+	vec3_t diffuse;
+}	light_t;
+
 typedef struct app_s
 {
 	window_t window;
@@ -99,7 +116,9 @@ typedef struct app_s
 	GLenum polygon_mode;
 	bool should_use_orthographic;
 	bool should_display_normals;
+	bool should_use_lighting;
 	camera_t camera;
+	light_t light;
 	bool is_entering_free_flight;
 	vec2_double_t cursor_last_pos;
 	model_info_t model_info;

@@ -6,9 +6,19 @@
 typedef struct vec4_s vec4_t;
 
 typedef struct vec3_s {
-	GLfloat x;
-	GLfloat y;
-	GLfloat z;
+	union {
+		struct {
+			GLfloat x;
+			GLfloat y;
+			GLfloat z;
+		};
+		struct {
+			GLfloat r;
+			GLfloat g;
+			GLfloat b;
+		};
+		GLfloat array[3];
+	};
 }	vec3_t;
 
 vec3_t vec3(GLfloat x, GLfloat y, GLfloat z);

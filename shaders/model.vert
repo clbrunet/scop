@@ -12,6 +12,7 @@ out vec2 v_texture_coordinates;
 void main()
 {
   gl_Position = projection_view_model * position;
+
   v_color = color;
   v_texture_coordinates = texture_coordinates;
 }

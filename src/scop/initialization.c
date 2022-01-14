@@ -29,8 +29,14 @@ static void initialize_variables(app_t *app)
 	app->fov = 90;
 	app->polygon_mode = GL_FILL;
 	app->should_use_orthographic = false;
+	app->should_display_normals = false;
+	app->should_use_lighting = false;
 
 	app->camera.speed = 8;
+
+	app->light.position = (vec3_t){ .x = 2, .y = 2, .z = 3, }; // TODO better light placement
+	app->light.ambient = (vec3_t){ .r = 0.1, .g = 0.1, .b = 0.1, };
+	app->light.diffuse = (vec3_t){ .r = 0.9, .g = 0.9, .b = 0.9, };
 
 	app->is_entering_free_flight = false;
 
@@ -113,20 +119,20 @@ static int initialize_glfw(app_t *app)
 	return 0;
 }
 
-static int initialize_gl_triangles_program(triangles_program_t *triangles_program)
+static int initialize_gl_model_program(model_program_t *model_program)
 {
-	triangles_program->id = create_program("./shaders/triangles.vert", NULL,
-			"./shaders/triangles.frag");
-	if (triangles_program->id == 0) {
+	model_program->id = create_program("./shaders/model.vert", NULL,
+			"./shaders/model.frag");
+	if (model_program->id == 0) {
 		return -1;
 	}
 
-	triangles_program->projection_view_model
-		= glGetUniformLocation(triangles_program->id, "projection_view_model");
-	assert(triangles_program->projection_view_model != -1);
-	triangles_program->texture_portion
-		= glGetUniformLocation(triangles_program->id, "texture_portion");
-	assert(triangles_program->texture_portion != -1);
+	model_program->projection_view_model
+		= glGetUniformLocation(model_program->id, "projection_view_model");
+	assert(model_program->projection_view_model != -1);
+	model_program->texture_portion
+		= glGetUniformLocation(model_program->id, "texture_portion");
+	assert(model_program->texture_portion != -1);
 	return 0;
 }
 
@@ -147,6 +153,50 @@ static int initialize_gl_normals_program(normals_program_t *normals_program)
 	return 0;
 }
 
+static int initialize_gl_model_lighting_program(app_t *app, model_lighting_program_t *model_lighting_program)
+{
+	model_lighting_program->id = create_program("./shaders/model_lighting.vert", NULL,
+			"./shaders/model_lighting.frag");
+	if (model_lighting_program->id == 0) {
+		return -1;
+	}
+
+	model_lighting_program->view_model
+		= glGetUniformLocation(model_lighting_program->id, "view_model");
+	assert(model_lighting_program->view_model != -1);
+	model_lighting_program->projection_view_model
+		= glGetUniformLocation(model_lighting_program->id, "projection_view_model");
+	assert(model_lighting_program->projection_view_model != -1);
+	model_lighting_program->texture_portion
+		= glGetUniformLocation(model_lighting_program->id, "texture_portion");
+	assert(model_lighting_program->texture_portion != -1);
+	model_lighting_program->light_position
+		= glGetUniformLocation(model_lighting_program->id, "light.position");
+	assert(model_lighting_program->light_position != -1);
+
+	glUseProgram(model_lighting_program->id);
+	GLenum error = glGetError();
+	if (error == GL_INVALID_OPERATION) {
+		fprintf(stderr, "glUseProgram invalid operation error\n");
+		glDeleteProgram(model_lighting_program->id);
+		return -1;
+	}
+	assert(error == GL_NO_ERROR);
+
+	GLint light_ambient = glGetUniformLocation(model_lighting_program->id,
+			"light.ambient");
+	assert(light_ambient != -1);
+	glUniform3fv(light_ambient, 1, app->light.ambient.array);
+	assert(glGetError() == GL_NO_ERROR);
+	GLint light_diffuse = glGetUniformLocation(model_lighting_program->id,
+			"light.diffuse");
+	assert(light_diffuse != -1);
+	glUniform3fv(light_diffuse, 1, app->light.diffuse.array);
+	assert(glGetError() == GL_NO_ERROR);
+
+	return 0;
+}
+
 static int initialize_gl(app_t *app)
 {
 	if (gladLoadGLLoader((GLADloadproc)&glfwGetProcAddress) == 0) {
@@ -155,7 +205,7 @@ static int initialize_gl(app_t *app)
 	}
 
 	const GLubyte *version = glGetString(GL_VERSION);
-	assert(version);
+	assert(version != NULL);
 	printf("OpenGL version : %s\n", version);
 
 	glViewport(0, 0, app->window.width, app->window.height);
@@ -165,10 +215,16 @@ static int initialize_gl(app_t *app)
 	glPointSize(2);
 	assert(glGetError() == GL_NO_ERROR);
 
-	if (initialize_gl_triangles_program(&app->opengl.triangles_program) == -1) {
+	if (initialize_gl_model_program(&app->opengl.model_program) == -1) {
 		return -1;
 	}
 	if (initialize_gl_normals_program(&app->opengl.normals_program) == -1) {
+		glDeleteProgram(app->opengl.model_program.id);
+		return -1;
+	}
+	if (initialize_gl_model_lighting_program(app, &app->opengl.model_lighting_program) == -1) {
+		glDeleteProgram(app->opengl.model_program.id);
+		glDeleteProgram(app->opengl.normals_program.id);
 		return -1;
 	}
 
@@ -315,9 +371,9 @@ static int initialize_texture_map(const app_t *app, const texture_t *texture)
 	glGenerateMipmap(GL_TEXTURE_2D);
 	assert(glGetError() == GL_NO_ERROR);
 
-	GLint sampler_uniform = glGetUniformLocation(app->opengl.triangles_program.id, "sampler");
+	GLint sampler_uniform = glGetUniformLocation(app->opengl.model_program.id, "sampler");
 	assert(sampler_uniform != -1);
-	glUseProgram(app->opengl.triangles_program.id);
+	glUseProgram(app->opengl.model_program.id);
 	error = glGetError();
 	if (error == GL_INVALID_OPERATION) {
 		fprintf(stderr, "glUseProgram invalid operation error\n");
@@ -326,6 +382,20 @@ static int initialize_texture_map(const app_t *app, const texture_t *texture)
 	assert(error == GL_NO_ERROR);
 	glUniform1i(sampler_uniform, 0);
 	assert(glGetError() == GL_NO_ERROR);
+
+	GLint material_diffuse_uniform = glGetUniformLocation(
+			app->opengl.model_lighting_program.id, "material.diffuse");
+	assert(material_diffuse_uniform != -1);
+	glUseProgram(app->opengl.model_lighting_program.id);
+	error = glGetError();
+	if (error == GL_INVALID_OPERATION) {
+		fprintf(stderr, "glUseProgram invalid operation error\n");
+		return -1;
+	}
+	assert(error == GL_NO_ERROR);
+	glUniform1i(material_diffuse_uniform, 0);
+	assert(glGetError() == GL_NO_ERROR);
+
 	return 0;
 }
 
@@ -359,7 +429,9 @@ int initialization(app_t *app, const char *object_path, const char *texture_path
 
 	model_t model;
 	if (load_obj(&model, object_path) == -1) {
-		glDeleteProgram(app->opengl.triangles_program.id);
+		glDeleteProgram(app->opengl.model_program.id);
+		glDeleteProgram(app->opengl.normals_program.id);
+		glDeleteProgram(app->opengl.model_lighting_program.id);
 		glfwTerminate();
 		return -1;
 	}
@@ -371,7 +443,9 @@ int initialization(app_t *app, const char *object_path, const char *texture_path
 	if (texture.data == NULL) {
 		free(model.vertices_position);
 		free(model.triangles);
-		glDeleteProgram(app->opengl.triangles_program.id);
+		glDeleteProgram(app->opengl.model_program.id);
+		glDeleteProgram(app->opengl.normals_program.id);
+		glDeleteProgram(app->opengl.model_lighting_program.id);
 		glfwTerminate();
 		return -1;
 	}
@@ -381,7 +455,9 @@ int initialization(app_t *app, const char *object_path, const char *texture_path
 		free(model.vertices_position);
 		free(model.triangles);
 		free(texture.data);
-		glDeleteProgram(app->opengl.triangles_program.id);
+		glDeleteProgram(app->opengl.model_program.id);
+		glDeleteProgram(app->opengl.normals_program.id);
+		glDeleteProgram(app->opengl.model_lighting_program.id);
 		glfwTerminate();
 		return -1;
 	}
