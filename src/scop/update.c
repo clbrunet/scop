@@ -254,6 +254,9 @@ static int draw_model_lighting(app_t *app)
 	glUniformMatrix4fv(app->opengl.model_lighting_program.projection_view_model, 1, GL_TRUE,
 			(const GLfloat *)projection_view_model_mat4);
 	assert(glGetError() == GL_NO_ERROR);
+	glUniform3fv(app->opengl.model_lighting_program.material_diffuse,
+			1, app->model_info.color.array);
+	assert(glGetError() == GL_NO_ERROR);
 	glUniform3fv(app->opengl.model_lighting_program.light_position, 1, light_position.array);
 	assert(glGetError() == GL_NO_ERROR);
 	glUniform1f(app->opengl.model_lighting_program.texture_portion, app->texture_portion);
@@ -279,6 +282,9 @@ static int draw_model(app_t *app)
 
 	glUniformMatrix4fv(app->opengl.model_program.projection_view_model, 1, GL_TRUE,
 			(const GLfloat *)projection_view_model_mat4);
+	assert(glGetError() == GL_NO_ERROR);
+	glUniform4fv(app->opengl.model_program.model_color,
+			1, vec3_to_vec4(&app->model_info.color).array);
 	assert(glGetError() == GL_NO_ERROR);
 	glUniform1f(app->opengl.model_program.texture_portion, app->texture_portion);
 	assert(glGetError() == GL_NO_ERROR);

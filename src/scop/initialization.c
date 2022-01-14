@@ -41,6 +41,7 @@ static void initialize_variables(app_t *app)
 
 	app->model_info.should_rotate = true;
 	app->model_info.position = (vec3_t){ .x = 0, .y = 0, .z = 0 };
+	app->model_info.color = (vec3_t){ .x = 1, .y = 1, .z = 1 };
 
 	app->texture_animation_phase = TO_COLOR;
 	app->texture_portion = 0;
@@ -129,6 +130,9 @@ static int initialize_gl_model_program(model_program_t *model_program)
 	model_program->projection_view_model
 		= glGetUniformLocation(model_program->id, "projection_view_model");
 	assert(model_program->projection_view_model != -1);
+	model_program->model_color
+		= glGetUniformLocation(model_program->id, "model_color");
+	assert(model_program->model_color != -1);
 	model_program->texture_portion
 		= glGetUniformLocation(model_program->id, "texture_portion");
 	assert(model_program->texture_portion != -1);
@@ -166,12 +170,15 @@ static int initialize_gl_model_lighting_program(app_t *app, model_lighting_progr
 	model_lighting_program->projection_view_model
 		= glGetUniformLocation(model_lighting_program->id, "projection_view_model");
 	assert(model_lighting_program->projection_view_model != -1);
-	model_lighting_program->texture_portion
-		= glGetUniformLocation(model_lighting_program->id, "texture_portion");
-	assert(model_lighting_program->texture_portion != -1);
+	model_lighting_program->material_diffuse
+		= glGetUniformLocation(model_lighting_program->id, "material.diffuse");
+	assert(model_lighting_program->material_diffuse != -1);
 	model_lighting_program->light_position
 		= glGetUniformLocation(model_lighting_program->id, "light.position");
 	assert(model_lighting_program->light_position != -1);
+	model_lighting_program->texture_portion
+		= glGetUniformLocation(model_lighting_program->id, "texture_portion");
+	assert(model_lighting_program->texture_portion != -1);
 
 	glUseProgram(model_lighting_program->id);
 	GLenum error = glGetError();
@@ -370,8 +377,8 @@ static int initialize_texture_map(const app_t *app, const texture_t *texture)
 	glGenerateMipmap(GL_TEXTURE_2D);
 	assert(glGetError() == GL_NO_ERROR);
 
-	GLint sampler_uniform = glGetUniformLocation(app->opengl.model_program.id, "sampler");
-	assert(sampler_uniform != -1);
+	GLint sampler = glGetUniformLocation(app->opengl.model_program.id, "sampler");
+	assert(sampler != -1);
 	glUseProgram(app->opengl.model_program.id);
 	error = glGetError();
 	if (error == GL_INVALID_OPERATION) {
@@ -379,12 +386,12 @@ static int initialize_texture_map(const app_t *app, const texture_t *texture)
 		return -1;
 	}
 	assert(error == GL_NO_ERROR);
-	glUniform1i(sampler_uniform, 0);
+	glUniform1i(sampler, 0);
 	assert(glGetError() == GL_NO_ERROR);
 
-	GLint material_diffuse_uniform = glGetUniformLocation(
-			app->opengl.model_lighting_program.id, "material.diffuse");
-	assert(material_diffuse_uniform != -1);
+	GLint material_diffuse_maps = glGetUniformLocation(
+			app->opengl.model_lighting_program.id, "material.diffuse_maps");
+	assert(material_diffuse_maps != -1);
 	glUseProgram(app->opengl.model_lighting_program.id);
 	error = glGetError();
 	if (error == GL_INVALID_OPERATION) {
@@ -392,7 +399,7 @@ static int initialize_texture_map(const app_t *app, const texture_t *texture)
 		return -1;
 	}
 	assert(error == GL_NO_ERROR);
-	glUniform1i(material_diffuse_uniform, 0);
+	glUniform1i(material_diffuse_maps, 0);
 	assert(glGetError() == GL_NO_ERROR);
 
 	return 0;

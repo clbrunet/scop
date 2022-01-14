@@ -90,6 +90,35 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 			case GLFW_KEY_Z:
 				app->selected_axis = Z;
 				break;
+
+			case GLFW_KEY_C:
+				if (app->model_info.color.r == 1 && app->model_info.color.g == 1
+					&& app->model_info.color.b == 1) {
+					app->model_info.color = (vec3_t){
+						.r = 1,
+						.g = 0,
+						.b = 0,
+					};
+				} else if (app->model_info.color.r == 1) {
+					app->model_info.color = (vec3_t){
+						.r = 0,
+						.g = 1,
+						.b = 0,
+					};
+				} else if (app->model_info.color.g == 1) {
+					app->model_info.color = (vec3_t){
+						.r = 0,
+						.g = 0,
+						.b = 1,
+					};
+				} else {
+					app->model_info.color = (vec3_t){
+						.r = 1,
+						.g = 1,
+						.b = 1,
+					};
+				}
+				break;
 		}
 	}
 }

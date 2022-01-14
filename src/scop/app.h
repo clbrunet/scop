@@ -62,12 +62,14 @@ typedef struct model_program_s
 {
 	GLuint id;
 	GLint projection_view_model;
+	GLint model_color;
 	GLint texture_portion;
 }	model_program_t;
 
 typedef struct model_lighting_program_s
 {
 	GLuint id;
+	GLint material_diffuse;
 	GLint view_model;
 	GLint projection_view_model;
 	GLint texture_portion;
@@ -91,6 +93,7 @@ typedef struct model_info_s
 	GLfloat yaw;
 	bool should_rotate;
 	vec3_t position;
+	vec3_t color;
 }	model_info_t;
 
 typedef enum axis_e
