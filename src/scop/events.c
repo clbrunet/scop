@@ -113,18 +113,18 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-		app->camera.speed += yoffset;
-		if (app->camera.speed < 1) {
-			app->camera.speed = 1;
-		} else if (app->camera.speed > 100) {
-			app->camera.speed = 100;
-		}
-	} else {
 		app->fov -= yoffset * 3;
 		if (app->fov < 60) {
 			app->fov = 60;
 		} else if (app->fov > 120) {
 			app->fov = 120;
+		}
+	} else {
+		app->camera.speed += yoffset;
+		if (app->camera.speed < 1) {
+			app->camera.speed = 1;
+		} else if (app->camera.speed > 100) {
+			app->camera.speed = 100;
 		}
 	}
 }
