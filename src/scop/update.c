@@ -190,6 +190,17 @@ static void set_view_model_mat4(app_t *app, mat4_t view_model_mat4)
 	mat4_multiplication(view_mat4, model_mat4, view_model_mat4);
 }
 
+static void set_projection_view_mat4(app_t *app, mat4_t projection_view_mat4)
+{
+	mat4_t view_mat4;
+	set_view_mat4(app, view_mat4);
+
+	mat4_t projection_mat4;
+	set_projection_mat4(app, projection_mat4);
+
+	mat4_multiplication(projection_mat4, view_mat4, projection_view_mat4);
+}
+
 static void set_projection_view_model_mat4(app_t *app, mat4_t projection_view_model_mat4)
 {
 	mat4_t view_model_mat4;
@@ -210,6 +221,9 @@ static int draw_normals(app_t *app)
 		return -1;
 	}
 	assert(error == GL_NO_ERROR);
+
+	glBindVertexArray(app->opengl.model_vao.id);
+	assert(glGetError() == GL_NO_ERROR);
 
 	mat4_t view_model_mat4;
 	set_view_model_mat4(app, view_model_mat4);
@@ -237,6 +251,9 @@ static int draw_model_lighting(app_t *app)
 		return -1;
 	}
 	assert(error == GL_NO_ERROR);
+
+	glBindVertexArray(app->opengl.model_vao.id);
+	assert(glGetError() == GL_NO_ERROR);
 
 	mat4_t view_mat4;
 	set_view_mat4(app, view_mat4);
@@ -267,6 +284,31 @@ static int draw_model_lighting(app_t *app)
 	return 0;
 }
 
+static int draw_light(app_t *app)
+{
+	glUseProgram(app->opengl.light_program.id);
+	GLenum error = glGetError();
+	if (error == GL_INVALID_OPERATION) {
+		fprintf(stderr, "glUseProgram invalid operation error\n");
+		return -1;
+	}
+	assert(error == GL_NO_ERROR);
+
+	glBindVertexArray(app->opengl.light_vao.id);
+	assert(glGetError() == GL_NO_ERROR);
+
+	mat4_t projection_view_mat4;
+	set_projection_view_mat4(app, projection_view_mat4);
+
+	glUniformMatrix4fv(app->opengl.light_program.projection_view, 1, GL_TRUE,
+			(const GLfloat *)projection_view_mat4);
+	assert(glGetError() == GL_NO_ERROR);
+
+	glDrawArrays(GL_POINTS, 0, 1);
+	assert(glGetError() == GL_NO_ERROR);
+	return 0;
+}
+
 static int draw_model(app_t *app)
 {
 	glUseProgram(app->opengl.model_program.id);
@@ -276,6 +318,9 @@ static int draw_model(app_t *app)
 		return -1;
 	}
 	assert(error == GL_NO_ERROR);
+
+	glBindVertexArray(app->opengl.model_vao.id);
+	assert(glGetError() == GL_NO_ERROR);
 
 	mat4_t projection_view_model_mat4;
 	set_projection_view_model_mat4(app, projection_view_model_mat4);
@@ -308,7 +353,8 @@ int update(app_t *app)
 		}
 	}
 	if (app->should_use_lighting) {
-		if (draw_model_lighting(app) == -1) {
+		if (draw_model_lighting(app) == -1
+			|| draw_light(app) == -1) {
 			return -1;
 		}
 	} else {

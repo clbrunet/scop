@@ -30,15 +30,13 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 			case GLFW_KEY_M:
 				if (app->polygon_mode == GL_FILL) {
-					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 					app->polygon_mode = GL_LINE;
 				} else if (app->polygon_mode == GL_LINE) {
-					glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 					app->polygon_mode = GL_POINT;
 				} else {
-					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 					app->polygon_mode = GL_FILL;
 				}
+				glPolygonMode(GL_FRONT_AND_BACK, app->polygon_mode);
 				break;
 
 			case GLFW_KEY_R:

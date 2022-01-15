@@ -214,6 +214,20 @@ static int initialize_gl_model_lighting_program(app_t *app, model_lighting_progr
 	return 0;
 }
 
+static int initialize_gl_light_program(light_program_t *light_program)
+{
+	light_program->id = create_program("./shaders/light.vert", NULL,
+			"./shaders/light.frag");
+	if (light_program->id == 0) {
+		return -1;
+	}
+
+	light_program->projection_view
+		= glGetUniformLocation(light_program->id, "projection_view");
+	assert(light_program->projection_view != -1);
+	return 0;
+}
+
 static int initialize_gl(app_t *app)
 {
 	if (gladLoadGLLoader((GLADloadproc)&glfwGetProcAddress) == 0) {
@@ -229,7 +243,9 @@ static int initialize_gl(app_t *app)
 	assert(glGetError() == GL_NO_ERROR);
 	glEnable(GL_DEPTH_TEST);
 	assert(glGetError() == GL_NO_ERROR);
-	glPointSize(2);
+	glPointSize(3);
+	assert(glGetError() == GL_NO_ERROR);
+	glEnable(GL_PROGRAM_POINT_SIZE);
 	assert(glGetError() == GL_NO_ERROR);
 
 	if (initialize_gl_model_program(&app->opengl.model_program) == -1) {
@@ -244,6 +260,24 @@ static int initialize_gl(app_t *app)
 		glDeleteProgram(app->opengl.normals_program.id);
 		return -1;
 	}
+	if (initialize_gl_light_program(&app->opengl.light_program) == -1) {
+		glDeleteProgram(app->opengl.model_program.id);
+		glDeleteProgram(app->opengl.normals_program.id);
+		glDeleteProgram(app->opengl.model_lighting_program.id);
+		return -1;
+	}
+
+	glGenVertexArrays(1, &app->opengl.model_vao.id);
+	assert(glGetError() == GL_NO_ERROR);
+	glGenBuffers(1, &app->opengl.model_vao.vertex_buffer);
+	assert(glGetError() == GL_NO_ERROR);
+	glGenTextures(1, &app->opengl.model_vao.texture_map);
+	assert(glGetError() == GL_NO_ERROR);
+
+	glGenVertexArrays(1, &app->opengl.light_vao.id);
+	assert(glGetError() == GL_NO_ERROR);
+	glGenBuffers(1, &app->opengl.light_vao.vertex_buffer);
+	assert(glGetError() == GL_NO_ERROR);
 
 	return 0;
 }
@@ -319,7 +353,7 @@ static int initialize_array_buffer_data(array_buffer_data_t *array_buffer_data,
 
 static int initialize_array_buffer(const app_t *app, const array_buffer_data_t *array_buffer_data)
 {
-	glBindBuffer(GL_ARRAY_BUFFER, app->opengl.vertex_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, app->opengl.model_vao.vertex_buffer);
 	assert(glGetError() == GL_NO_ERROR);
 	glBufferData(GL_ARRAY_BUFFER, array_buffer_data->vertices_count * sizeof(vertex_t),
 			array_buffer_data->vertices, GL_STATIC_DRAW);
@@ -360,7 +394,7 @@ static int initialize_texture_map(const app_t *app, const texture_t *texture)
 {
 	glActiveTexture(GL_TEXTURE0);
 	assert(glGetError() == GL_NO_ERROR);
-	glBindTexture(GL_TEXTURE_2D, app->opengl.texture_map);
+	glBindTexture(GL_TEXTURE_2D, app->opengl.model_vao.texture_map);
 	assert(glGetError() == GL_NO_ERROR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 	assert(glGetError() == GL_NO_ERROR);
@@ -416,6 +450,45 @@ static int initialize_texture_map(const app_t *app, const texture_t *texture)
 	return 0;
 }
 
+static int initialize_model_vao(app_t *app, array_buffer_data_t *array_buffer_data,
+		texture_t *texture)
+{
+	glBindVertexArray(app->opengl.model_vao.id);
+	assert(glGetError() == GL_NO_ERROR);
+
+	if (initialize_array_buffer(app, array_buffer_data) == -1) {
+		return -1;
+	}
+	initialize_vertex_array();
+	if (initialize_texture_map(app, texture) == -1) {
+		return -1;
+	}
+	return 0;
+}
+
+static int initialize_light_vao(app_t *app)
+{
+	glBindVertexArray(app->opengl.light_vao.id);
+	assert(glGetError() == GL_NO_ERROR);
+
+	glBindBuffer(GL_ARRAY_BUFFER, app->opengl.light_vao.vertex_buffer);
+	assert(glGetError() == GL_NO_ERROR);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vec3_t), &app->light.position, GL_STATIC_DRAW);
+	GLenum error = glGetError();
+	if (error == GL_OUT_OF_MEMORY) {
+		fprintf(stderr, "glBufferData out of memory error\n");
+		return -1;
+	}
+	assert(error == GL_NO_ERROR);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), 0);
+	assert(glGetError() == GL_NO_ERROR);
+	glEnableVertexAttribArray(0);
+	assert(glGetError() == GL_NO_ERROR);
+
+	return 0;
+}
+
 // horizontal_fov in radians
 static void set_camera_position(vec3_t *camera_position,
 		const bounding_box_t *model_bounding_box, GLfloat horizontal_fov, GLfloat aspect_ratio)
@@ -446,64 +519,41 @@ int initialization(app_t *app, const char *object_path, const char *texture_path
 
 	model_t model;
 	if (load_obj(&model, object_path) == -1) {
-		glDeleteProgram(app->opengl.model_program.id);
-		glDeleteProgram(app->opengl.normals_program.id);
-		glDeleteProgram(app->opengl.model_lighting_program.id);
-		glfwTerminate();
+		destruction(app);
 		return -1;
 	}
 	app->model_info.triangles_count = model.triangles_count;
 	app->model_info.bounding_box = model.bounding_box;
+
 	texture_t texture;
 	texture.data = load_tga(texture_path, &texture.width, &texture.height,
 			&texture.channel_count);
 	if (texture.data == NULL) {
 		free(model.vertices_position);
 		free(model.triangles);
-		glDeleteProgram(app->opengl.model_program.id);
-		glDeleteProgram(app->opengl.normals_program.id);
-		glDeleteProgram(app->opengl.model_lighting_program.id);
-		glfwTerminate();
+		destruction(app);
 		return -1;
 	}
+
 	array_buffer_data_t array_buffer_data;
 	if (initialize_array_buffer_data(&array_buffer_data, &model,
 			(GLfloat)texture.width / (GLfloat)texture.height) == -1) {
 		free(model.vertices_position);
 		free(model.triangles);
 		free(texture.data);
-		glDeleteProgram(app->opengl.model_program.id);
-		glDeleteProgram(app->opengl.normals_program.id);
-		glDeleteProgram(app->opengl.model_lighting_program.id);
-		glfwTerminate();
+		destruction(app);
 		return -1;
 	}
 	free(model.vertices_position);
 	free(model.triangles);
 
-	glGenVertexArrays(1, &app->opengl.vertex_array);
-	assert(glGetError() == GL_NO_ERROR);
-	glGenBuffers(1, &app->opengl.vertex_buffer);
-	assert(glGetError() == GL_NO_ERROR);
-	glGenTextures(1, &app->opengl.texture_map);
-	assert(glGetError() == GL_NO_ERROR);
-
-	glBindVertexArray(app->opengl.vertex_array);
-	assert(glGetError() == GL_NO_ERROR);
-
-	if (initialize_array_buffer(app, &array_buffer_data) == -1) {
+	if (initialize_model_vao(app, &array_buffer_data, &texture) == -1) {
 		free(array_buffer_data.vertices);
 		free(texture.data);
 		destruction(app);
 		return -1;
 	}
 	free(array_buffer_data.vertices);
-	initialize_vertex_array();
-	if (initialize_texture_map(app, &texture) == -1) {
-		free(texture.data);
-		destruction(app);
-		return -1;
-	}
 	free(texture.data);
 
 	set_camera_position(&app->camera.position, &app->model_info.bounding_box,
@@ -513,5 +563,10 @@ int initialization(app_t *app, const char *object_path, const char *texture_path
 		.y = app->model_info.bounding_box.max_distance,
 		.z = app->camera.position.z,
 	};
+	if (initialize_light_vao(app) == -1) {
+		destruction(app);
+		return -1;
+	}
+
 	return 0;
 }

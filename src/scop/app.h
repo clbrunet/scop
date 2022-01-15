@@ -76,14 +76,33 @@ typedef struct model_lighting_program_s
 	GLint light_position;
 }	model_lighting_program_t;
 
+typedef struct light_program_s
+{
+	GLuint id;
+	GLint projection_view;
+}	light_program_t;
+
+typedef struct model_vao_s
+{
+	GLuint id;
+	GLuint vertex_buffer;
+	GLuint texture_map;
+}	model_vao_t;
+
+typedef struct light_vao_s
+{
+	GLuint id;
+	GLuint vertex_buffer;
+}	light_vao_t;
+
 typedef struct opengl_s
 {
 	normals_program_t normals_program;
 	model_program_t model_program;
 	model_lighting_program_t model_lighting_program;
-	GLuint vertex_array;
-	GLuint vertex_buffer;
-	GLuint texture_map;
+	light_program_t light_program;
+	model_vao_t model_vao;
+	light_vao_t light_vao;
 }	opengl_t;
 
 typedef struct model_info_s
