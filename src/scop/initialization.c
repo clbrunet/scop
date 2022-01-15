@@ -35,7 +35,8 @@ static void initialize_variables(app_t *app)
 	app->camera.speed = 8;
 
 	app->light.ambient = (vec3_t){ .r = 0.1, .g = 0.1, .b = 0.1, };
-	app->light.diffuse = (vec3_t){ .r = 0.9, .g = 0.9, .b = 0.9, };
+	app->light.diffuse = (vec3_t){ .r = 0.8, .g = 0.8, .b = 0.8, };
+	app->light.specular = (vec3_t){ .r = 0.2, .g = 0.2, .b = 0.2, };
 
 	app->is_entering_free_flight = false;
 
@@ -189,6 +190,11 @@ static int initialize_gl_model_lighting_program(app_t *app, model_lighting_progr
 	}
 	assert(error == GL_NO_ERROR);
 
+	GLint material_shininess = glGetUniformLocation(model_lighting_program->id,
+			"material.shininess");
+	assert(material_shininess != -1);
+	glUniform1f(material_shininess, 64);
+	assert(glGetError() == GL_NO_ERROR);
 	GLint light_ambient = glGetUniformLocation(model_lighting_program->id,
 			"light.ambient");
 	assert(light_ambient != -1);
@@ -198,6 +204,11 @@ static int initialize_gl_model_lighting_program(app_t *app, model_lighting_progr
 			"light.diffuse");
 	assert(light_diffuse != -1);
 	glUniform3fv(light_diffuse, 1, app->light.diffuse.array);
+	assert(glGetError() == GL_NO_ERROR);
+	GLint light_specular = glGetUniformLocation(model_lighting_program->id,
+			"light.specular");
+	assert(light_specular != -1);
+	glUniform3fv(light_specular, 1, app->light.specular.array);
 	assert(glGetError() == GL_NO_ERROR);
 
 	return 0;

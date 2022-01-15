@@ -108,6 +108,7 @@ typedef struct light_s
 	vec3_t position;
 	vec3_t ambient;
 	vec3_t diffuse;
+	vec3_t specular;
 }	light_t;
 
 typedef struct app_s
