@@ -4,7 +4,7 @@
 #include "scop/app.h"
 
 #define NEAR_PLANE 0.01
-#define FAR_PLANE 1000
+#define FAR_PLANE 3000
 
 int update(app_t *app);
 

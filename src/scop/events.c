@@ -20,6 +20,8 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
+	(void)scancode;
+	(void)mods;
 	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
 
 	if (action == GLFW_PRESS) {
@@ -123,6 +125,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
+	(void)mods;
 	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
 
 	if (button == GLFW_MOUSE_BUTTON_RIGHT) {
@@ -137,6 +140,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
+	(void)xoffset;
 	app_t *app = (app_t *)glfwGetWindowUserPointer(window);
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {

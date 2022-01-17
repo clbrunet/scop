@@ -15,7 +15,7 @@
 #include "scop/vectors/vec3.h"
 #include "scop/load_obj/utils.h"
 
-static void triangulate_polygon(polygon_t *polygon, triangle_t **triangles_it, const vec3_t *vertices_position)
+static void triangulate_polygon(polygon_t *polygon, triangle_t **triangles_it)
 {
 	(**triangles_it)[0] = polygon->vertices_index[0];
 	(**triangles_it)[1] = polygon->vertices_index[1];
@@ -30,11 +30,10 @@ static void triangulate_polygon(polygon_t *polygon, triangle_t **triangles_it, c
 	}
 }
 
-static void triangulate_polygons(polygon_t *polygons_it, GLuint polygons_count, model_t *model)
+static void triangulate_polygons(polygon_t *polygons_it, GLuint polygons_count, triangle_t *triangles_it)
 {
-	triangle_t *triangles_it = model->triangles;
 	while (polygons_count > 0) {
-		triangulate_polygon(polygons_it, &triangles_it, model->vertices_position);
+		triangulate_polygon(polygons_it, &triangles_it);
 		free(polygons_it->vertices_index);
 		polygons_it++;
 		polygons_count--;
@@ -86,7 +85,7 @@ int load_obj(model_t *model, const char *path)
 	}
 	free_strs(lines);
 
-	triangulate_polygons(polygons, polygons_count, model);
+	triangulate_polygons(polygons, polygons_count, model->triangles);
 	free(polygons);
 	center_bounding_box(model);
 	return 0;
