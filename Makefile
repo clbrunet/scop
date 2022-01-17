@@ -19,7 +19,7 @@ ifeq ($(UNAME_S),Darwin)
 	LDLIBS := -framework Cocoa -framework OpenGL -framework IOKit -lglfw3 -lglad
 endif
 
-SRCS := $(shell find $(SRCS_DIR)/ -type f -name "*.c")
+SRCS := $(shell find $(SRCS_DIR) -type f -name "*.c")
 OBJS := $(SRCS:$(SRCS_DIR)/%.c=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 

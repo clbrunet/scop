@@ -62,8 +62,9 @@ void set_orthographic_projection_mat4(mat4_t orthographic_mat4, GLfloat left, GL
 void set_perspective_projection_mat4(mat4_t projection_mat4, GLfloat horizontal_fov,
 		GLfloat aspect_ratio, GLfloat near, GLfloat far)
 {
-	assert(!isnanf(horizontal_fov) && !isinff(horizontal_fov));
+	assert(!isnan(horizontal_fov) && !isinf(horizontal_fov));
 	assert(0 < horizontal_fov && horizontal_fov < 180);
+	assert(aspect_ratio != 0);
 	assert(near >= 0 && far >= 0);
 
 	set_zero_mat4(projection_mat4);
@@ -81,7 +82,7 @@ void set_perspective_projection_mat4(mat4_t projection_mat4, GLfloat horizontal_
 // angle in radians
 void set_yaw_mat4(mat4_t yaw_mat4, GLfloat angle)
 {
-	assert(!isnanf(angle) && !isinff(angle));
+	assert(!isnan(angle) && !isinf(angle));
 
 	set_identity_mat4(yaw_mat4);
 	yaw_mat4[0][0] = cos(angle);
@@ -105,7 +106,7 @@ void set_pitch_mat4(mat4_t pitch_mat4, GLfloat angle)
 // angle in radians
 void set_roll_mat4(mat4_t roll_mat4, GLfloat angle)
 {
-	assert(!isnanf(angle) && !isinff(angle));
+	assert(!isnan(angle) && !isinf(angle));
 
 	set_identity_mat4(roll_mat4);
 	roll_mat4[0][0] = cos(angle);

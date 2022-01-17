@@ -10,14 +10,14 @@
 
 GLfloat radians(GLfloat degrees)
 {
-	assert(!isnanf(degrees) && !isinff(degrees));
+	assert(!isnan(degrees) && !isinf(degrees));
 
 	return degrees * (M_PI / 180);
 }
 
 GLfloat degrees(GLfloat radians)
 {
-	assert(!isnanf(radians) && !isinff(radians));
+	assert(!isnan(radians) && !isinf(radians));
 
 	return radians * (180 / M_PI);
 }
