@@ -1,9 +1,10 @@
 # 42_scop
 So Corporate OpenGL Program
 
+## Usage :
 ```sh
 make
-./scop
+./scop objects/Suzanne.obj textures/uv_grid.tga
 ```
 
 ## Example :
