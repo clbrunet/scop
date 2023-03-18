@@ -1,4 +1,4 @@
-# 42_scop
+# scop
 So Corporate OpenGL Program
 
 ## Usage
