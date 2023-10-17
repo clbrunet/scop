@@ -53,3 +53,7 @@ Moving the mouse simulate a first person view.
 | `=` | Move the model in the positive direction of the currently selected axis |
 | `Shift` | Double movements speed by holding |
 | `Alt` | Divide by 2 movements speed by holding |
+
+## Dependencies
+* [GLFW](https://github.com/glfw/glfw)
+* [glad](https://github.com/Dav1dde/glad)
